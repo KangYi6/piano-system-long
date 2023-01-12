@@ -1,0 +1,385 @@
+<template>
+	<view :class="width == 1480 ? 'long' : 'pad'">
+		<view class="box">
+			<view class="airplane"><image class="img" src="@/static/video/airplane.png"></image></view>
+			<view class="content">
+				<video id="video" @click="clickVideo()" class="video" :style="'width:'+width+'px;height:'+height+'px;position:relative;'"
+					@ended="endBtn" 
+					@error="errBtn" 
+					show-mute-btn="true" 
+					play-btn-position="center" 
+					:src="info.video" 
+					:poster="info.thumb" 
+					show-fullscreen-btn="true" 
+					show-center-play-btn="true" 
+					autoplay
+					>
+				</video>
+			</view>
+			<view class="star"><image class="img" src="@/static/video/star.png"></image></view>
+			<view class="clover"><image class="img" src="@/static/video/clover.png"></image></view>
+		</view>
+		<cover-view class="cover" v-if="sonPageShow">
+			<cover-image @click.stop="goBack()" class="goback" src="@/static/goback.png"></cover-image>
+		</cover-view>
+		<cover-view v-if="finished" class="layer" :style="'left:'+left+'px;top:'+top+'px;'">
+			<cover-view class="line">
+				<cover-image class="title" src="@/static/common/finished.png"></cover-image>
+				<cover-view class="operabtn">
+					<cover-view class="again" @click.stop="again()">
+						<text class="p">再看一次</text>
+					</cover-view>
+					<cover-view class="next" @click.stop="next()">
+						<text class="p">下一个</text>
+					</cover-view>
+				</cover-view>
+			</cover-view>
+		</cover-view>
+		<cover-view v-if="overShow" class="over" :style="'left:'+left+'px;top:'+top+'px;'">
+			<cover-view class="line">
+				<cover-image class="title" src="@/static/common/over-title.png"></cover-image>
+				<cover-view class="confirm" @click.stop="goBack()">
+					<text class="text">确定</text>
+				</cover-view>
+			</cover-view>
+		</cover-view>
+	</view>
+</template>
+
+<script>
+	//Nvue无法调用main.js中的属性，需要单独引用
+	import request from '@/lib/request.js'
+	export default {
+		data() {
+			return {
+				//视频内容信息 ptype类型1直播 2闯关 3产品 4课程 pid产品ID thumb缩略图 video视频地址
+				info: {},
+				videoContext: null, //视频对象
+				subNVue: null ,//子窗口
+				sonPageShow: true, //子组件状态
+				width: 0,
+				height: 0,
+				left: 0,
+				top: 0,
+				finished: false,
+				overShow: false,
+			}
+		},
+		onLoad(options) {
+			//视频宽高
+			if (getApp().globalData.width > 1925) {
+				this.width = 1480;
+				this.height = 590;
+			} else {
+				this.width = getApp().globalData.width,
+				this.height = getApp().globalData.height
+			}
+			//弹窗的位置
+			this.left = getApp().globalData.width/2 - 220
+			this.top = getApp().globalData.height/2 - 125
+			//获取nvue子窗口
+			this.subNVue = uni.getSubNVueById('courseMenu')
+			//默认先隐藏
+			this.subNVue.hide()
+			//获取store数据，如果需要显示
+			if (this.$store.state.course.show) {
+				this.subNVue.show()
+			}
+			this.info = options
+			this.videoContext = uni.createVideoContext('video')
+			let that = this
+			//监听课件切换
+			uni.$on('change',function(data){
+				//返回
+				uni.navigateBack()
+			})
+			//监听课件更新
+			uni.$on('update',function(data){
+				this.finished = false
+				that.videoContext.pause()
+				that.info = data.info
+				that.finished = false
+				that.subNVue.show()
+				//自动播放视频
+				setTimeout(function(){
+					that.videoContext.play()
+					that.sonPageShow = true
+				},500)
+			})
+			//课时已学完
+			uni.$on('over',function(data){
+				that.overShow = true
+			})
+		},
+		methods: {
+			endBtn(){
+				if (this.info.ptype && this.info.ptype == 2) {
+					//提交数据
+					request({
+						url: '/piano/breakthrough/submission.html',
+						method: 'POST',
+						data: {
+							p_id:this.info.pid,
+							score:100,
+							type:1,
+							cw_id:this.info.cwid,
+							c_id:this.info.cid
+						}
+					}).then(res => {
+						if (res.data.code == 1000) {
+							// 根据返回值判断是否要解锁下一关
+							if (res.data.data != 0){ //表示全部完成或者下一关需要购买用户未购买
+								//解锁下一个课件的ID
+								uni.$emit('unlocked',res.data.data)
+							}
+						} else {
+							uni.showToast({
+								title:res.data.msg,
+								icon:'none'
+							})
+						}
+					}) 
+				}
+				//其它课程，显示弹窗
+				this.finished = true
+			},
+			errBtn(){
+				uni.showToast({
+					title:'视频错误'
+				})
+			},
+			clickVideo(){
+				if (this.sonPageShow) {
+					this.subNVue.hide()
+					this.sonPageShow = false
+				} else {
+					this.subNVue.show()
+					this.sonPageShow = true
+				}
+			},
+			again(){
+				this.videoContext.play()
+				this.finished = false
+			},
+			next(){
+				uni.$emit('next')
+				this.finished = false
+			},
+			//返回上一页
+			goBack(){
+				//暂停视频
+				this.videoContext.pause()
+				//清理课程切换组件状态
+				this.$store.state.course.show = false
+				//返回
+				uni.navigateBack()
+			},
+		},
+		beforeDestroy(){
+			// uni.$off('change')
+			// uni.$off('update')
+			// uni.$off('over')
+		}
+	}
+</script>
+
+<style>
+	.long{
+		width:2560px;
+		height:720px;
+		background: #0A0F4E;
+	}
+	.long .box{
+		width:1540px;
+		height:650px;
+		border-radius: 30px;
+		background: #21329C;
+		margin:30px 510px;
+	}
+	.long .content{
+		width:1520px;
+		height:630px;
+		border-radius: 20px;
+		background: #000;
+		border:10px #6CC4FF solid;
+		margin:10px 0 0 10px;
+		padding:10px;
+		position: relative;
+	}
+	.airplane{
+		width:161px;
+		height:176px;
+		position: fixed;
+		bottom:50px;
+		left:320px;
+	}
+	.airplane .img{
+		width:161px;
+		height:176px;
+	}
+	.star{
+		position: fixed;
+		top:80px;
+		right:440px;
+	}
+	.star .img{
+		width:28px;
+		height:28px;
+	}
+	.clover{
+		position: fixed;
+		bottom:50px;
+		right:420px;
+	}
+	.clover .img{
+		width:52px;
+		height:51px;
+	}
+	.cover{
+		position: fixed;
+		top: 30px;
+		right: 30px;
+		width: 180px;
+		height: 72px;
+	}
+	.goback{ 
+		width: 180px;
+		height: 72px;
+	}
+	/* 平板 */
+	.pad{
+		flex: 1;
+		background: #0A0F4E;
+		position: relative;
+	}
+	.pad .box{
+		flex: 1;
+		margin:0;
+		border-radius:0;
+	}
+	.pad .content{
+		border:0;
+		padding:0;
+		margin:0;
+		border-radius: 0;
+		border:0;
+	}
+	.pad .video{
+		flex:1;
+	}
+	.pad .airplane{
+		width:0;
+		height:0;
+	}
+	.pad .img{
+		width: 0;
+		height: 0;
+	}
+	.pad .cover{
+		width: 130px;
+		height: 52px;
+		top: 30px;
+		right: 25px;
+		position: absolute;
+	}
+	.pad .goback{
+		width: 130px;
+		height: 52px;
+	}
+	/* 弹窗 */
+	.layer{
+		width:430px;
+		height:230px;
+		position: fixed;
+		text-align: center;
+		padding:10px;
+		z-index: 999;
+		background-image: linear-gradient(to right, #044BD6 , #009FFA);
+		border-radius: 10px;
+		box-shadow: 0px 0px 10px 3px rgb(0 0 0 / 20%);
+		text-align: center;
+		margin-bottom:20px;
+	}
+	.line{
+		width:410px;
+		height:210px;
+		border:5px #fff solid;
+		border-radius: 5px;
+	}
+	.title{
+		width:200px;
+		height:37px;
+		margin:40px 110px;
+	}
+	.operabtn{
+		width:410px;
+		height:40px;
+		margin-left:20px;
+		margin-top:10px;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		color:#f00;
+	}
+	.again{
+		width:172px;
+		height:40px;
+		background: #fff;
+		border:1px #fff solid;
+
+		border-radius:20px;
+	}
+	.again .p{
+		line-height: 40px;
+		font-size:16px;
+		color:#0365E1;
+		text-align: center;
+	}
+	.next{
+		width:172px;
+		height:40px;
+		background: #0270E6;
+		border:1px #fff solid;
+		margin-left:20px;
+		border-radius:20px;
+	}
+	.next .p{
+		line-height: 40px;
+		font-size:16px;
+		color:#fff;
+		text-align: center;
+	}
+	/* 课时完成 */
+	.over{
+		width:430px;
+		height:230px;
+		position: fixed;
+		text-align: center;
+		padding:10px;
+		z-index: 999;
+		background-image: linear-gradient(to right, #044BD6 , #009FFA);
+		border-radius: 10px;
+		box-shadow: 0px 0px 10px 3px rgb(0 0 0 / 20%);
+		text-align: center;
+		margin-bottom:20px;
+	}
+	.over .title{
+		width:370px;
+		height:34px;
+		margin:40px 15px 43px;
+	}
+	.confirm{
+		width:172px;
+		height:40px;
+		background: #0270E6;
+		border:1px #fff solid;
+		margin-left:120px;
+		border-radius:20px;
+	}
+	.confirm .text{
+		line-height: 40px;
+		font-size:16px;
+		color:#fff;
+		text-align: center;
+	}
+</style>

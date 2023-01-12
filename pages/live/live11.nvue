@@ -1,0 +1,1290 @@
+<template>
+	<view class="content">
+		<view v-if="globalData.width == 2560 && globalData.height == 720" class="bg"></view>
+		<view v-if="globalData.width <= 1920 && globalData.height <= 1080" class="bgIpad2"></view>
+		
+		<!-- 平板 1280*752 -->
+		<!-- 直播前检查 --> 
+		<view class="liveInIpad2" v-if="liveIn == 1 && globalData.width <= 1920 && globalData.height <= 1080">
+			<view class="infosIpad2">
+				<view class="infoIpad2">
+					<image class="info_imgIpad2" src="../../static/icons/live_gou.png" mode=""></image>
+					<text class="textIpad2">为了保证上课流畅，建议使用WIFI网络进行上课；</text>
+				</view>
+				<view class="infoIpad2">
+					<image class="info_imgIpad2" src="../../static/icons/live_gou.png" mode=""></image>
+					<text class="textIpad2">请提前确认钢琴MIDI已连接；</text>
+				</view>
+				<view class="infoIpad2">
+					<image class="info_imgIpad2" src="../../static/icons/live_gou.png" mode=""></image>
+					<text class="textIpad2">如中途出现掉线、黑屏、卡住等情况，可以尝试退出课堂重新进入。</text>
+				</view>
+			</view>
+			<view class="btn_inIpad2" @click="goLive"><text class="text1">进入课堂</text></view>
+		</view>
+		
+		<!-- 直播详情页 -->
+		<view class="detailsIpad2" v-if="details == 1 && globalData.width <= 1920 && globalData.height <= 1080">
+			<view class="leftIpad2">
+				<view class="" v-if="leftCus == 0">
+					<image class="notcusIpad2" src="../../static/live_notcus.png" mode=""></image>
+					<text class="left_text1Ipad2">老师还没有分享课件哦</text>
+				</view>
+				<view class="" v-if="leftCus == 1">
+					<image class="play_iconIpad2" src="../../static/icons/details_play.png" mode=""></image>
+					<text class="left_textIpad2">成人零基础钢琴入门课程</text>
+				</view>
+			</view>
+			<!-- 直播画面 -->
+			<view class="videoIpad2"></view>
+			<!-- 直播信息 -->
+			<image class="live_iconIpad2" src="../../static/live_icon.png" mode=""></image>
+			<text class="live_noIpad2">NO SINGAL</text>
+			<text class="live_timeIpad2">上课时间: 00:00:00</text>
+
+			<!-- 聊天信息 -->
+			<view class="talksIpad2">
+				<scroll-view scroll-y="true" :scroll-top="scrollTop" class="scroll-Y" scroll-with-animation="true" show-scrollbar="false">
+					<!-- 其他学员聊天信息 -->
+					<!-- <view class="talkIpad2" v-for="(item, index) in talk" :key="index">
+						<text class="talk_timeIpad2">{{ item.time }}</text>
+						<text class="talk_nameIpad2">{{ item.name }}</text>
+						<text class="talk_msgIpad2">{{ item.msg }}</text>
+					</view> -->
+					<!-- 我的聊天信息 -->
+					<view class="myMsgIpad2" v-for="(item, index) in myinfo" :key="index">
+						<view class="myinfo">
+							<text class="mytimeIpad2">{{ item.time }}</text>
+							<text class="mynameIpad2">逐梦</text>
+							<text class="mytextIpad2">{{ item.message }}</text>
+						</view>
+					</view>
+				</scroll-view>
+			</view>
+
+			<!-- 快捷消息按钮 -->
+			<image class="upIpad2" src="../../static/live_up.png" mode="" @click="shortCuts"></image>
+			<!-- 表情按钮 -->
+			<image class="faceIpad2" src="../../static/live_face.png" mode=""></image>
+			<!-- 信息输入框 -->
+			<view class="inMsgIpad2">
+				<textarea class="msgIpad2" name="" id="" placeholder="请输入消息" v-model="message" maxlength="34"></textarea>
+				<!-- 发送按钮 -->
+				<view class="btn1Ipad2" @click="joinChannel()">
+				<!-- <view class="btn1Ipad2" @click="my_msg()"> -->
+					<image class="sendImgIpad2" src="@/static/live_px.png" mode=""></image>
+					<text class="btn_textIpad2">发送</text>
+				</view>
+			</view>
+			<!-- 快捷消息 -->
+			<view class="shortCutIpad2" v-if="shortMsg == 1">
+				<scroll-view class="scroll2Ipad2" scroll-y="true">
+					<view class="rowIpad2" v-for="(item, index) in shortCut" :key="index" @click="chooseMsg(item.text)">
+						<text class="listIpad2">{{ item.text }}</text>
+						<view class="lineIpad2"></view>
+					</view>
+				</scroll-view>
+			</view>
+		</view>
+
+		<!-- 直播详情页 (长条屏 2560*720) -->
+		<!-- 直播前检查 -->
+		<view class="liveIn" v-if="liveIn == 1 && globalData.width == 2560 && globalData.height == 720">
+			<view class="infos">
+				<view class="info">
+					<image class="info_img" src="../../static/icons/live_gou.png" mode=""></image>
+					<text class="text">为了保证上课流畅，建议使用WIFI网络进行上课；</text>
+				</view>
+				<view class="info">
+					<image class="info_img" src="../../static/icons/live_gou.png" mode=""></image>
+					<text class="text">请提前确认钢琴MIDI已连接；</text>
+				</view>
+				<view class="info">
+					<image class="info_img" src="../../static/icons/live_gou.png" mode=""></image>
+					<text class="text">如中途出现掉线、黑屏、卡住等情况，可以尝试退出课堂重新进入。</text>
+				</view>
+			</view>
+			<view class="btn_in" @click="goLive"><text class="text1">进入课堂</text></view>
+		</view>
+		<view class="details" v-if="details == 1 && globalData.width == 2560 && globalData.height == 720">
+			<view class="testbtn" @click="testb">
+				这是测试按钮
+			</view>
+			<view class="left">
+				<view class="" v-if="leftCus == 0">
+					<image class="notcus" src="../../static/live_notcus.png" mode=""></image>
+					<text class="left_text1">老师还没有分享课件哦</text>
+				</view>
+				<view class="" v-if="leftCus == 1">
+					<image class="play_icon" src="../../static/icons/details_play.png" mode=""></image>
+					<text class="left_text">成人零基础钢琴入门课程</text>
+				</view>
+			</view>
+			<view class="right">
+				<image class="class" src="../../static/details_class.png" mode=""></image>
+				<!-- 直播画面 -->
+				<view class="video"></view>
+				<!-- 直播信息 -->
+				<image class="live_icon" src="../../static/live_icon.png" mode=""></image>
+				<text class="live_no">NO SINGAL</text>
+				<text class="live_time">上课时间: 00:00:00</text>
+
+				<!-- 聊天信息 -->
+				<image class="wel" src="../../static/live_wel.png" mode=""></image>
+				<view class="talks">
+					<scroll-view scroll-y="true" :scroll-top="scrollTop" class="scroll-Y" scroll-with-animation="true" show-scrollbar="false">
+						<!-- 其他学员聊天信息 -->
+						<!-- <view class="talk" v-for="(item, index) in talk" :key="index">
+							<text class="talk_time">{{ item.time }}</text>
+							<text class="talk_name">{{ item.name }}</text>
+							<text class="talk_msg">{{ item.message }}</text>
+						</view> -->
+						<!-- 全部聊天信息 -->
+						<view class="myMsg" v-for="(item, index) in talk" :key="index">
+							<view class="myinfo">
+								<text class="mytime">{{ item.time }}</text>
+								<text class="myname">{{ item.name }}</text>
+								<text class="mytext">{{ item.message }}</text>
+							</view>
+						</view>
+					</scroll-view>
+				</view>
+
+				<!-- 快捷消息按钮 -->
+				<image class="up" src="../../static/live_up.png" mode="" @click="shortCuts"></image>
+				<!-- 表情按钮 -->
+				<image class="face" src="../../static/live_face.png" mode=""></image>
+				<!-- 信息输入框 -->
+				<view class="inMsg">
+					<textarea class="msg" name="" id="" placeholder="请输入消息" v-model="message" maxlength="34"></textarea>
+					<!-- 发送按钮 -->
+					<view class="btn1" @click="my_msg()">
+						<image class="sendImg" src="@/static/live_px.png" mode=""></image>
+						<text class="btn_text">发送</text>
+					</view>
+				</view>
+				<!-- 快捷消息 -->
+				<view class="shortCut" v-if="shortMsg == 1">
+					<scroll-view class="scroll2" scroll-y="true">
+						<view class="row" v-for="(item, index) in shortCut" :key="index" @click="chooseMsg(item.text)">
+							<text class="list">{{ item.text }}</text>
+							<view class="line"></view>
+						</view>
+					</scroll-view>
+				</view>
+			</view>
+		</view>
+
+		<!-- 视频窗口 -->
+				<view class="container">
+					<rtc-surface-view v-if="engine" class="local" :uid="3"></rtc-surface-view>
+					<scroll-view class="remoteContainer" scroll-x="true">
+						<view class="remote" v-for="(item, index) in remoteUid" :key="index">
+							<rtc-surface-view class="remote" :uid="item" :zOrderMediaOverlay="true"></rtc-surface-view>
+						</view>
+					</scroll-view>
+		<!-- 			<rtc-surface-view class="remote" :uid="3" :zOrderMediaOverlay="true"></rtc-surface-view> -->
+				</view>
+	</view>
+</template>
+
+<script>
+//Nvue无法调用main.js中的属性，需要单独引用
+import request from '@/lib/request.js'
+//引入权限组件
+import { requestAndroidPermission } from "@/lib/permission";
+//声网互动直播相关插件
+import RtcEngine, {RtcChannel} from '../../components/Agora-RTC-JS/index';
+import {ClientRole,ChannelProfile} from '../../components/Agora-RTC-JS/common/Enums';
+import RtcSurfaceView from '../../components/Agora-RTC-JS/RtcSurfaceView';
+//声网云信令插件
+// #ifdef APP-PLUS
+let agoraModule = uni.requireNativePlugin("XM-AgoraRtmModule")
+// #endif
+export default {
+	components: {
+		RtcSurfaceView: RtcSurfaceView
+	},
+	data() {
+		return {
+			globalData: getApp().globalData,
+			s_id: '', //排课ID
+			options: {}, //互动直播及云信令参数
+			engine: undefined,
+			isJoined: false,
+			remoteUid: [],
+			isSwitchCamera: true,
+			isSwitchRender: true,
+			// 直播检测提示显示
+			liveIn: 1,
+			// 直播详请显示
+			details: 0,
+			// 快捷消息显示
+			shortMsg: 0,
+			// 左边课件显示
+			leftCus: 0,
+			// 全部聊天信息
+			talk: [
+				// { time: '09:02', name: '黄总', message: '视频卡住了' },
+				// { time: '09:05', name: 'linda', message: '是我网络的原因吗' },
+				// { time: '09:05', name: 'linda', message: '是我网络的原因吗' },
+				// { time: '09:05', name: 'linda', message: '是我网络的原因吗' },
+				// { time: '09:05', name: 'linda', message: '是我网络的原因吗是我网络网络网络的原因吗' },
+				// { time: '09:05', name: 'linda', message: '是我网络的原因吗是我网络网络网络的原因吗' },
+				// { time: '09:05', name: 'linda', message: '不，是我的原因' },
+			],
+			scrollTop: '500',
+			// 输入框输入的信息
+			message: '',
+			// 我的聊天信息
+			myinfo: [],
+			// 当前时间
+			time: '',
+			// 快捷消息
+			shortCut: [
+				{ text: '非常好，强烈推荐！' },
+				{ text: '好棒，支持支持支持！' },
+				{ text: '对不起，让您久等了。' },
+				{ text: '没关系，我刚到。' },
+				{ text: '给您添麻烦了。' },
+				{ text: '我能为您做什么？' },
+				{ text: '您好，请问您需要帮助吗？' }
+			],
+		};
+	},
+	onLoad(option) {
+		this.s_id = option.s_id;
+		// console.log(option)
+	},
+	onBackPress() {
+		this.engine && this.engine.destroy();
+	},
+	methods: {
+		// 进入直播
+		goLive() {
+			this.liveIn = 0;
+			this.details = 1;
+			this.getdata()
+		},
+		// 获取数据
+		getdata() {
+			request({
+				url: '/piano/live/checkAuth.html',
+				data: { 
+					s_id: this.s_id ,
+				},
+				method: 'POST'
+			}).then(res => {
+				console.log(res)
+				if (res.data.code === 1000) {
+					this.options = res.data.data;
+					//初始化云信令
+					this.initRtmEngine();
+					//初始化互动直播
+					this.initEngine();
+					
+				} else {
+					uni.showToast({
+						title:res.data.msg,
+						icon:'none'
+					})
+				}
+			});
+		},
+		// 显示隐藏快捷消息
+		shortCuts() {
+			if (this.shortMsg == 0) {
+				this.shortMsg = 1;
+			} else if (this.shortMsg == 1) {
+				this.shortMsg = 0;
+			}
+		},
+		// 点击快捷消息发送消息
+		chooseMsg(text) {
+			this.shortCuts();
+			this.message = text;
+		},
+		// 获取当前本地时间
+		getTime() {
+			let hh = new Date().getHours() < 10 ? '0' + new Date().getHours() : new Date().getHours();
+			let mf = new Date().getMinutes() < 10 ? '0' + new Date().getMinutes() : new Date().getMinutes();
+			this.time = hh + ':' + mf;
+			console.log(this.time)
+		},
+		// 发送我的输入内容
+		my_msg() {
+			if (this.message) {
+				this.getTime();
+				// 我的聊天信息
+				this.myinfo = this.myinfo.concat({ type:'chat', message: this.message, time: this.time, name: this.globalData.logindata.u_nickname }).slice(-1);
+				console.log(this.myinfo);
+				this.message = '';
+				// 全部聊天信息
+				this.talk = this.talk.concat(this.myinfo)
+				console.log(this.talk)
+				// 新消息置底
+				this.$nextTick(() => {
+					this.scrollTop = this.scrollTop + 500;
+				});
+			}
+			//发送频道消息
+			// this.sendMessage(this.myinfo);
+		},
+
+		// ====================== 声网 云信令 ====================
+		//初始化
+		initRtmEngine() {
+			let that = this
+			agoraModule.initSDK({
+				appId: this.options.appid
+			}, (ret) => {
+				// console.log(ret)
+				//初始化结果回调
+				if (ret.success) {
+					that.loginRtm()
+				} else {
+					uni.showToast({
+						title:"聊天初始化失败",
+						icon:"none"
+					}) 
+				}
+			}, (message) => {
+				//消息和通知回调
+				/**
+				 * onConnectionStateChanged 连接状态改变回调
+				 * onMessageReceived 接收到个人发来的消息
+				 * onTokenExpired token过期，需要重新登录
+				 * onTokenPrivilegeWillExpire 
+				 * onPeersOnlineStatusChanged
+				 */
+				// console.log(message)
+			})
+		},
+		//登录
+		loginRtm() {
+			agoraModule.login({
+				token: this.options.chattoken,
+				userId: this.options.uid
+			}, (ret) => {
+				//回调在这里
+				if (ret.success) {
+					this.createAndJoinChannel()
+				} else {
+					uni.showToast({
+						title:ret.msg,
+						icon:"none"
+					})
+				}
+			})
+		},
+		//退出
+		logoutRtm() {
+			agoraModule.logout((ret) => {
+				//回调在这里
+				// console.log(ret)
+			})
+		},
+		//创建并加入频道
+		createAndJoinChannel() {
+			agoraModule.createAndJoinChannel({
+				mChannelName: this.options.channel
+			}, (ret) => {
+				//方法结果回调在这里
+			}, (message) => {
+				//消息和通知回调
+				/**
+				 * onMemberCountUpdated 成员数量更新
+				 * onAttributesUpdated 自己找文档看
+				 * onMessageReceived 收到频道消息
+				 * onMemberJoined
+				 * onMemberLeft
+				 */
+				if(message.data.rtmMessage){
+					this.getTime()
+					let mes = JSON.parse(message.data.rtmMessage.text)
+					this.talk = this.talk.concat({ type:mes.type, message: mes.message, time: this.time, name:mes.name})
+				}
+			})
+		},
+		
+		// 测试按钮，离开频道
+		testb(){
+			// this.leaveAndReleaseChannel()
+			// this.getChannelMemberList()
+			this.initEngine();
+		},
+		//退出频道
+		leaveAndReleaseChannel() {
+			agoraModule.leaveAndReleaseChannel((ret) => {
+				//回调在这里
+				console.log(ret)
+			})
+		},
+		//获取频道成员
+		getChannelMemberList() {
+			agoraModule.getChannelMemberList((ret) => {
+				//回调在这里
+				console.log(ret)
+			})
+		},
+		//发送一对一消息
+		sendPeerMessage(peerId,message) {
+			agoraModule.sendPeerMessage({
+				mPeerId: peerId,
+				text: message
+			}, (ret) => {
+				//回调在这里
+				// console.log(ret)
+			})
+		},
+		//发送频道消息
+		sendChannelMessage(message) {
+			agoraModule.sendChannelMessage({
+				text: message
+			}, (ret) => {
+				//回调在这里
+				console.log(ret)
+			})
+		},
+		
+		// ====================== 声网 互动直播 ====================
+		// 初始化
+		async initEngine() {
+			// this.engine = await RtcEngine.create(this.options.appid);
+			// this.engine = await RtcEngine.create('d9d5afab637942a3bb5f2fe8de972f40');
+			// console.log(this.engine)
+			// // 监听直播相关数据
+			// this.addListeners();
+			// //视频默认禁用，你需要调用 enableVideo 启用视频流。
+			// await this.engine.enableVideo();
+			// //开启本地视频预览
+			// await this.engine.startPreview();
+			// //设置通道配置文件
+			// await this.engine.setChannelProfile(ChannelProfile.LiveBroadcasting);
+			// //设置角色
+			// await this.engine.setClientRole(ClientRole.Broadcaster); //Broadcaster主播 Audience观众
+			
+				this.engine = await RtcEngine.create('d9d5afab637942a3bb5f2fe8de972f40');
+				this.addListeners();
+				await this.engine.enableVideo();
+				await this.engine.startPreview();
+				await this.engine.setChannelProfile(ChannelProfile.LiveBroadcasting);
+				await this.engine.setClientRole(ClientRole.Broadcaster);
+			
+			console.log(this.engine)
+			//加入频道
+			this.joinChannel();
+		},
+		//监听互动直播
+		addListeners() {
+			this.engine.addListener('JoinChannelSuccess', (channel, uid, elapsed) => {
+				console.info('JoinChannelSuccess', channel, uid, elapsed);
+				this.isJoined = true;
+			});
+			this.engine.addListener('UserJoined', (uid, elapsed) => {
+				console.info('UserJoined', uid, elapsed);
+				this.remoteUid = [...this.remoteUid, uid];
+			});
+			this.engine.addListener('UserOffline', (uid, reason) => {
+				console.info('UserOffline', uid, reason);
+				this.remoteUid = this.remoteUid.filter((value) => value !== uid);
+			});
+			this.engine.addListener('LeaveChannel', (stats) => {
+				console.info('LeaveChannel', stats);
+				this.isJoined = false;
+				this.remoteUid = [];
+			});
+		},
+		//加入互动直播频道
+		async joinChannel() {
+			console.log('加入直播频道')
+			if (uni.getSystemInfoSync().platform === 'android') {
+				// console.log(uni.getSystemInfoSync().platform)
+				//获取设备音频权限
+				await requestAndroidPermission('android.permission.RECORD_AUDIO');
+				//获取设备摄像头权限
+				await requestAndroidPermission('android.permission.CAMERA');
+			}
+			console.log(await this.engine)
+			console.log(this.engine.joinChannel(
+					this.options.token,
+					this.options.channel,
+					null,
+					this.options.uid
+				))
+			await this.engine &&
+				this.engine.joinChannel(
+					this.options.token,
+					this.options.channel,
+					null,
+					this.options.uid
+				);
+			console(this.options)
+			
+		},
+		//退出互动直播频道
+		async leaveChannel() {
+			await this.engine && this.engine.leaveChannel();
+		},
+	}
+};
+</script>
+
+<style>
+	.container {
+		flex: 1;
+	}
+
+	.float {
+		position: absolute;
+		right: 0;
+		bottom: 0;
+	}
+
+	.top {
+		/* width: 100%; */
+	}
+
+	.input {
+		borderColor: gray;
+		borderWidth: 1;
+	}
+
+	.local {
+		flex: 1;
+	}
+
+	.remoteContainer {
+		position: absolute;
+		left: 0;
+		top: 0;
+		flex-direction: row;
+	}
+
+	.remote {
+		width: 120;
+		height: 120;
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.testbtn{
+	width: 200px;
+	height: 40px;
+	background-color: #0077f1;
+	position: absolute;
+	right: 50px;
+	bottom: 10px;
+}
+/* 长条屏（2560*720） */
+/* 直播前提示页面 */
+.bg {
+	width: 2560px;
+	height: 720px;
+	background-color: #0a1050;
+	position: absolute;
+	z-index: -1;
+}
+.liveIn {
+	width: 2560px;
+	height: 720px;
+}
+/* 背景 */
+.liveIn .infos {
+	margin-left: 1000px;
+	margin-top: 150px;
+}
+.liveIn .info {
+	width: 800px;
+	height: 100px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+}
+.info_img {
+	width: 36px;
+	height: 36px;
+}
+.text {
+	font-size: 25px;
+	font-weight: normal;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	color: #fff;
+	margin-left: 10px;
+	margin-top: 5px;
+}
+.liveIn .btn_in {
+	width: 300px;
+	height: 75px;
+	padding: 15px 67px 10px 77px;
+	border: 2px solid #fff;
+	border-radius: 40px;
+	color: #fff;
+	margin-left: 1200px;
+	margin-top: 30px;
+}
+.text1 {
+	font-size: 36px;
+	color: #fff;
+}
+.none {
+	width: 0;
+}
+/* 直播详情页 */
+.details {
+	width: 2560px;
+	height: 720px;
+	display: flex;
+	justify-content: center;
+	flex-direction: row;
+}
+.left {
+	width: 1800px;
+	height: 630px;
+	background-color: #fff;
+	margin-top: 20px;
+	border-radius: 12px;
+}
+.notcus {
+	width: 108px;
+	height: 85px;
+	margin-top: 250px;
+	margin-left: 800px;
+}
+.left_text1 {
+	width: 130px;
+	height: 15px;
+	font-size: 12px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	text-align: left;
+	color: #000;
+	margin-top: 20px;
+	margin-left: 800px;
+}
+.play_icon {
+	width: 125px;
+	height: 125px;
+	margin-top: 250px;
+	margin-left: 800px;
+}
+.left_text {
+	width: 329px;
+	height: 32px;
+	font-size: 30px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	text-align: center;
+	color: #333;
+	margin-left: 700px;
+	margin-top: 20px;
+}
+.right {
+	width: 680px;
+	height: 630px;
+	background-color: #fff;
+	margin-top: 20px;
+	border-radius: 12px;
+	margin-left: 20px;
+	position: relative;
+}
+.class {
+	width: 20px;
+	height: 630px;
+}
+.video {
+	width: 630px;
+	height: 300px;
+	background-color: #000;
+	border-radius: 15px;
+	position: absolute;
+	left: 30px;
+	top: 20px;
+}
+.live_icon {
+	width: 38px;
+	height: 42px;
+	position: absolute;
+	top: 150px;
+	left: 290px;
+}
+.live_no {
+	width: 135px;
+	height: 23px;
+	opacity: 0.39;
+	font-size: 24px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #fff;
+	position: absolute;
+	top: 160px;
+	left: 350px;
+}
+.live_time {
+	width: 183px;
+	height: 23px;
+	font-size: 20px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #df122a;
+	position: absolute;
+	top: 280px;
+	right: 30px;
+}
+.wel {
+	width: 478px;
+	height: 37px;
+	position: absolute;
+	top: 330px;
+	left: 110px;
+}
+/* 聊天信息 */
+.talks {
+	width: 630px;
+	height: 185px;
+	position: absolute;
+	top: 380px;
+	left: 30px;
+	display: flex;
+	flex-direction: column;
+	border-radius: 12px;
+	border-style: solid;
+	border-color: #0077f1;
+	border-width: 1px;
+}
+.scroll-Y {
+	width: 630px;
+	height: 185px;
+}
+/* 其他学员聊天记录 */
+.talk {
+	display: flex;
+	flex-direction: row;
+	margin: 5px 0px 5px 5px;
+}
+.talk_time {
+	width: 40px;
+	height: 15px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #888;
+}
+.talk_name {
+	/* width: 70px; */
+	/* height: 18px; */
+	/* font-size: 16px; */
+	/* font-family: Hiragino Sans GB, Hiragino Sans GB-W3; */
+	/* font-weight: normal; */
+	color: #00fa9a !important;
+	/* margin-left: 10px; */
+	/* text-align: left; */
+	/* overflow: hidden; */
+}
+.talk_msg {
+	width: 500px;
+	height: 20px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #333;
+	margin-left: 5px;
+	overflow: hidden;
+}
+/* 我的聊天记录 */
+.myMsg {
+	/* width: 300px; */
+	/* height: 50px; */
+	margin-left: 5px;
+}
+.myinfo {
+	height: 20px;
+	display: flex;
+	flex-direction: row;
+	/* justify-content: right; */
+	margin-bottom: 5px;
+	margin-top: 5px;
+}
+.mytime {
+	width: 40px;
+	height: 15px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #0077f1;
+	text-align: left;
+}
+.myname {
+	width: 70px;
+	height: 18px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #0077f1;
+	margin-left: 10px;
+	text-align: left;
+}
+.mytext {
+	width: 500px;
+	height: 20px;
+	/* word-break: break-all; */
+	border-radius: 5px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: red;
+	text-align: left;
+	overflow: hidden;
+	margin-left: 5px;
+}
+.up {
+	width: 30px;
+	height: 30px;
+	position: absolute;
+	bottom: 15px;
+	left: 40px;
+	opacity: 0.5;
+}
+.face {
+	width: 30px;
+	height: 30px;
+	position: absolute;
+	bottom: 17px;
+	left: 520px;
+	/* opacity: 0.5; */
+}
+/* 消息输入框 */
+.inMsg {
+	width: 580px;
+	height: 45px;
+	border-radius: 15px;
+	position: absolute;
+	left: 80px;
+	bottom: 10px;
+}
+.msg {
+	width: 580px;
+	height: 45px;
+	font-size: 15px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	text-align: left;
+	color: #bdbdbd;
+	line-height: 31px;
+	color: #333;
+	border-width: 2px;
+	border-style: solid;
+	border-color: #e7e7e7;
+	padding-left: 10px;
+	padding-top: 10px;
+}
+.btn1 {
+	width: 102px;
+	height: 44px;
+	position: absolute;
+	right: 0px;
+	background-color: #0077f1;
+	display: flex;
+	justify-content: center;
+	flex-direction: row;
+}
+.sendImg {
+	width: 20px;
+	height: 20px;
+	margin-top: 12px;
+	margin-right: 10px;
+}
+.btn_text {
+	width: 33px;
+	height: 18px;
+	font-size: 16px;
+	color: #fff;
+	margin-top: 13px;
+}
+/* 快捷消息 */
+.shortCut {
+	width: 528px;
+	height: 168px;
+	background-color: #fff;
+	position: absolute;
+	bottom: 68px;
+	left: 30px;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #0077f1;
+}
+.scroll2 {
+	height: 168px;
+}
+.row {
+	margin-top: 20px;
+}
+.list {
+	width: 150px;
+	height: 20px;
+	font-size: 12px;
+	font-family: Source Han Sans CN, Source Han Sans CN-Regular;
+	font-weight: 400;
+	text-align: left;
+	color: #333;
+	margin-left: 10px;
+}
+.line {
+	width: 500px;
+	height: 1px;
+	margin-left: 10px;
+	background-color: #333;
+	opacity: 0.2;
+}
+
+/* 平板（1280*752） */ 
+/* 直播前提示页面 */
+/* 背景 */
+.bgIpad2 {
+	width: 1280px;
+	height: 752px;
+	position: absolute;
+	z-index: -1;
+}
+.liveInIpad2 {
+	width: 1280px;
+	height: 752px;
+}
+.liveInIpad2 .infosIpad2 {
+	margin-left: 400px;
+	margin-top: 150px;
+}
+.liveInIpad2 .infoIpad2 {
+	width: 800px;
+	height: 100px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+}
+.info_imgIpad2 {
+	width: 30px;
+	height: 30px;
+}
+.textIpad2 {
+	font-size: 20px;
+	font-weight: normal;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	color: #fff;
+	margin-left: 10px;
+	margin-top: 5px;
+}
+.liveInIpad2 .btn_inIpad2 {
+	width: 300px; 
+	height: 75px;
+	padding: 15px 67px 10px 77px;
+	border: 2px solid #fff;
+	border-radius: 40px;
+	color: #fff;
+	margin-left: 500px;
+	margin-top: 30px;
+}
+.text1Ipad2 {
+	font-size: 36px;
+	color: #fff;
+}
+.noneIpad2 {
+	width: 0;
+}
+/* 直播详情页 */
+.detailsIpad2 {
+	width: 1280px;
+	height: 752px;
+	position: relative;
+}
+.leftIpad2 {
+	width: 1240px;
+	height: 680px;
+	background-color: #fff;
+	margin-top: 20px;
+	margin-left: 20px;
+	border-radius: 12px;
+}
+.notcusIpad2 {
+	width: 108px;
+	height: 85px;
+	margin-top: 250px;
+	margin-left: 580px;
+}
+.left_text1Ipad2 {
+	width: 130px;
+	height: 15px;
+	font-size: 12px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	text-align: left;
+	color: #000;
+	margin-top: 20px;
+	margin-left: 580px;
+}
+.play_iconIpad2 {
+	width: 100px;
+	height: 100px;
+	margin-top: 250px;
+	margin-left: 580px;
+}
+.left_textIpad2 {
+	width: 329px;
+	height: 32px;
+	font-size: 30px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	text-align: center;
+	color: #333;
+	margin-left: 470px;
+	margin-top: 20px;
+}
+.videoIpad2 {
+	width: 400px;
+	height: 250px;
+	background-color: #000;
+	border-radius: 12px;
+	position: absolute;
+	left: 850px;
+	top: 440px;
+}
+.live_iconIpad2 {
+	width: 25px;
+	height: 28px;
+	position: absolute;
+	left: 1000px;
+	top: 560px;
+}
+.live_noIpad2 {
+	width: 150px;
+	height: 20px;
+	opacity: 0.39;
+	font-size: 20px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #fff;
+	position: absolute;
+	left: 1040px;
+	top: 563px;
+}
+.live_timeIpad2 {
+	width: 150px;
+	height: 23px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #df122a;
+	position: absolute;
+	top: 660px;
+	right: 30px;
+}
+/* 聊天信息 */
+.talksIpad2 {
+	width: 450px;
+	height: 185px;
+	position: absolute;
+	top: 440px;
+	left: 30px;
+	display: flex;
+	flex-direction: column;
+	border-radius: 12px;
+	border-style: solid;
+	border-color: #0077f1;
+	border-width: 1px;
+}
+.scroll-Y {
+	height: 185px;
+}
+/* 其他学员聊天记录 */
+.talkIpad2 {
+	display: flex;
+	flex-direction: row;
+	margin: 5px 0px 5px 5px;
+}
+.talkIpad2 .talk_timeIpad2 {
+	width: 40px;
+	height: 15px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #888;
+}
+.talkIpad2 .talk_nameIpad2 {
+	width: 70px;
+	height: 18px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #00fa9a;
+	margin-left: 10px;
+	text-align: left;
+	overflow: hidden;
+}
+.talkIpad2 .talk_msgIpad2 {
+	width: 310px;
+	height: 20px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #333;
+	margin-left: 5px;
+	overflow: hidden;
+}
+/* 我的聊天记录 */
+.myMsgIpad2 {
+	margin-left: 5px;
+}
+.myinfoIpad2 {
+	height: 20px;
+	display: flex;
+	flex-direction: row;
+	/* justify-content: right; */
+	margin-bottom: 5px;
+	margin-top: 5px;
+}
+.mytimeIpad2 {
+	width: 40px;
+	height: 15px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #0077f1;
+	text-align: left;
+}
+.mynameIpad2 {
+	width: 70px;
+	height: 18px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #0077f1;
+	margin-left: 10px;
+	text-align: left;
+}
+.mytextIpad2 {
+	width: 500px;
+	height: 20px;
+	/* word-break: break-all; */
+	border-radius: 5px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: red;
+	text-align: left;
+	overflow: hidden;
+	margin-left: 5px;
+}
+.upIpad2 {
+	width: 20px;
+	height: 20px;
+	position: absolute;
+	top: 650px;
+	left: 40px;
+	opacity: 0.5;
+}
+.faceIpad2 {
+	width: 25px;
+	height: 25px;
+	position: absolute;
+	top: 650px;
+	left: 340px;
+}
+/* 消息输入框 */
+.inMsgIpad2 {
+	width: 410px;
+	height: 45px;
+	border-radius: 15px;
+	position: absolute;
+	left: 70px;
+	top: 640px;
+}
+.msgIpad2 {
+	width: 400px;
+	height: 45px;
+	font-size: 15px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	text-align: left;
+	color: #bdbdbd;
+	line-height: 31px;
+	color: #333;
+	border-width: 2px;
+	border-style: solid;
+	border-color: #e7e7e7;
+	padding-left: 10px;
+	padding-top: 10px;
+	border-radius: 50px;
+}
+.btn1Ipad2 {
+	width: 102px;
+	height: 44px;
+	position: absolute;
+	right: 0px;
+	background-color: #0077f1;
+	display: flex;
+	justify-content: center;
+	flex-direction: row;
+	border-top-right-radius: 50px;
+	border-bottom-right-radius: 50px;
+}
+.sendImgIpad2 {
+	width: 20px;
+	height: 20px;
+	margin-top: 12px;
+	margin-right: 10px;
+}
+.btn_textIpad2 {
+	width: 33px;
+	height: 18px;
+	font-size: 16px;
+	color: #fff;
+	margin-top: 13px;
+}
+/* 快捷消息 */
+.shortCutIpad2 {
+	width: 200px;
+	height: 168px;
+	background-color: #fff;
+	position: absolute;
+	bottom: 128px;
+	left: 30px;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #0077f1;
+}
+.scroll2Ipad2 {
+	height: 168px;
+}
+.rowIpad2 {
+	margin-top: 20px;
+}
+.listIpad2 {
+	width: 150px;
+	height: 20px;
+	font-size: 12px;
+	font-family: Source Han Sans CN, Source Han Sans CN-Regular;
+	font-weight: 400;
+	text-align: left;
+	color: #333;
+	margin-left: 10px;
+}
+.lineIpad2 {
+	width: 500px;
+	height: 1px;
+	margin-left: 10px;
+	background-color: #333;
+	opacity: 0.2;
+}
+</style>

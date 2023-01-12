@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>逐梦瀑布流</title>
+	<link rel="stylesheet" href="assets/index.css">
+	<script type="text/javascript" src="assets/jquery.min.js"></script>
+	<script type="text/javascript" src="assets/jquery-ui.js"></script>
+	<script type="text/javascript" src="assets/jquery.ui.touch-punch.min.js"></script>
+	<script type="text/javascript" src="assets/uni.webview.1.5.4.js"></script>
+</head>
+<body>
+	<div class="setting">
+		<span onclick="startBtn()">
+			<img class="start" src="assets/images/start-icon.png">
+			<img class="stop hide" src="assets/images/stop.png">
+		</span>
+		<span onclick="resetBtn()"><img src="assets/images/reset-icon.png"></span>
+		<span onclick="setBtn()"><img src="assets/images/set-icon.png"></span>
+		<div class="operation">
+			<h1 class="title">逐梦音乐</h1>
+			<div class="param">
+				<div class="info">
+					<em class="mode">C 大调</em>
+					<em class="signature">4/4</em>
+					<em class="bpm">60 BPM</em>
+				</div>
+			</div>
+			<div class="param">
+				<div class="left fl">速度</div>
+				<div class="right fl">
+					<div class="speed">
+						<div class="minus fl" onclick="speedBtn('minus')"><span>-</span></div>
+						<div class="value fl">
+							<div class="percent">100</div>
+							<div class="symbol">%</div>
+						</div>
+						<div class="plus fl" onclick="speedBtn('plus')"><span>+</span></div>
+					</div>
+				</div>
+			</div>
+			<div class="param">
+				<div class="left fl">伴音</div>
+				<div class="right fl">
+					<div class="hand fl">
+						<div class="imgbox lefthand" onclick="handBtn(this,1)">
+							<img class="hide" src="assets/images/open.png">
+							<img src="assets/images/close.png">
+						</div>
+						<p>左手</p>
+					</div>
+					<div class="hand fl">
+						<div class="imgbox righthand" onclick="handBtn(this,2)">
+							<img class="hide" src="assets/images/open.png">
+							<img src="assets/images/close.png">
+						</div>
+						<p>右手</p>
+					</div>
+				</div>
+			</div>
+			<div class="param">
+				<div class="left fl">音量</div>
+				<div class="right fl">
+					<div id="slider"></div>
+					<div class="velocity">60</div>
+				</div>
+			</div>
+			<div class="param keyboard-switch">
+				<div class="left fl">键盘</div>
+				<div class="right fl" onclick="keyBtn()">
+					<div class="keyimg"><img src="assets/images/open.png"></div>
+					<div class="keyimg hide"><img src="assets/images/close.png"></div>
+				</div>
+			</div>
+			<div class="param keyboard-switch">
+				<div class="left fl">难度</div>
+				<div class="right fl">
+					<i onclick="difficultyBtn(this,15)">简单</i><i onclick="difficultyBtn(this,10)" class="curbg">适中</i><i onclick="difficultyBtn(this,5)">最难</i>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="goback" onclick="goback()"><img src="assets/images/goback.png"></div>
+	<div class="keyboard">
+	    <!-- 88键盘 36个黑键 52个白键 -->
+	    <div id="key21" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key23" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key24" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key26" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key28" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key29" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key31" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key33" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key35" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key36" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key38" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key40" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key41" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key43" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key45" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key47" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key48" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key50" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key52" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key53" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key55" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key57" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key59" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key60" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key62" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key64" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key65" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key67" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key69" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key71" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key72" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key74" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key76" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key77" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key79" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key81" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key83" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key84" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key86" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key88" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key89" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key91" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key93" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key95" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key96" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key98" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key100" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key101" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key103" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key105" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key107" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+	    <div id="key108" class="key">
+	        <div class="whiteKey"></div>
+	    </div>
+ 	    <div id="key22" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key25" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key27" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key30" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key32" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key34" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key37" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key39" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key42" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key44" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key46" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key49" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key51" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key54" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key56" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key58" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key61" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key63" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key66" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key68" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key70" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key73" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key75" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key78" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key80" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key82" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key85" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key87" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key90" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key92" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key94" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key97" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key99" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key102" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key104" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	    <div id="key106" class="key">
+	        <div class="key blackKey"></div>
+	    </div>
+	</div>
+	<div class="blackbg">
+		<div class="finish">
+			<div class="cot">
+				<div class="box clearfix">
+					<div class="head">
+						<img src="assets/images/finish.png">
+					</div>
+					<div class="scorebox">
+						<div class="left fl">
+							<div class="score">
+								<span id="score">0</span> 分
+							</div>
+							<p>练习用时 <i id="time">00分00秒</i></p>
+						</div>
+						<div class="rightbox fl">
+							<ul>
+								<li>
+									<span><em id="accuracy">0</em> %</span>
+									<p>准确率</p>
+								</li>
+								<li>
+									<span><em id="error">0</em> 个</span>
+									<p>错误</p>
+								</li>
+								<li>
+									<span><em id="fighting">0</em> %</span>
+									<p>打败用户</p>
+								</li>
+							</ul>
+						</div>
+					</div>
+					<div class="tips">小梦评语：您的识谱非常棒，速度再提高就完美了！</div>
+					<div class="operabtn">
+						<div class="noplay" onclick="goback()">不练了</div>
+						<div class="again">再练一次</div>
+					</div>
+				</div>
+				<div class="close"><img src="assets/images/close-icon-2.png"></div>
+			</div>
+		</div>
+	</div>
+	<canvas id="cvs"></canvas>
+	<script type="text/javascript" src="assets/index.js"></script>
+</body>
+</html>

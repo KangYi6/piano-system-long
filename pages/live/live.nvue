@@ -1,0 +1,1971 @@
+<template>
+	<view class="content">
+<!-- ------------------------------------------------------------ 2560 * 720------------------------------------------------------------------ -->
+		<!-- 直播前检查 -->
+		<view class="liveIn" v-if="liveIn == 1 && globalData.width >= 2560">
+			<view class="infos">
+				<view class="info">
+					<image class="info_img" src="../../static/icons/live_gou.png" mode=""></image>
+					<text class="text">为了保证上课流畅，建议使用WIFI网络进行上课；</text>
+				</view>
+				<view class="info">
+					<image class="info_img" src="../../static/icons/live_gou.png" mode=""></image>
+					<text class="text">请提前确认钢琴MIDI已连接；</text>
+				</view>
+				<view class="info">
+					<image class="info_img" src="../../static/icons/live_gou.png" mode=""></image>
+					<text class="text">如中途出现掉线、黑屏、卡住等情况，可以尝试退出课堂重新进入。</text>
+				</view>
+			</view>
+			<view class="btn_in" @click="goLive"><text class="text1">进入课堂</text></view>
+		</view>
+		<!-- 直播详情页 (长条屏 2560*720) -->
+		<view class="details" v-if="details == 1 && globalData.width >= 2560">
+			<view class="left">
+				<!-- 无课件 -->
+				<view class="" v-if="leftCus == 0">
+					<image class="notcus" src="../../static/live_notcus.png" mode=""></image>
+					<text class="left_text1">老师还没有分享课件哦</text>
+				</view>
+				<!-- 视频 -->
+				<video class="mp4" v-if="leftCus == 1 && cusType == 1" ref="myVideo" controls="false" :src="videosrc" id="video" :poster="thumb" show-fullscreen-btn="false" @ended="ended" :key="keys">
+				</video>
+				<!-- 曲谱 -->
+				<web-view v-if="false" :webview-styles="webviewStyles" :src="webViewUrl" @message="handlePostMessage"></web-view>
+				<!-- 涂色 -->
+				<view class="keyboard" v-if="leftCus == 1 && cusType == 3">
+					<view class="whiteKey" v-for="(item, index) in whitekey" :key="index" :style="{background:item.color}" @click="chooseWhite(item,index)"></view>
+					<view :class="index==2||index==6||index==9||index==13||index==16 ? 'blackKey null' : 'blackKey'" v-for="(item, index) in blackkey" :key="index" :style="{background:item.color}" @click="chooseBlack(item,index)"></view>
+				</view>
+				<view class="bottom" v-if="leftCus == 1 && cusType == 3">
+					<view class="color" v-for="(item,index) in colorList" :key="index" :class="{cur:current == index}" @click="chooseCor(index,item)">
+						<image :src="item.url" mode=""></image> 
+					</view>
+				</view>
+			</view>
+			<view class="right">
+				<!-- 直播画面 -->
+				<view class="video"></view>
+				<!-- 直播信息 -->
+				<image class="live_icon" src="../../static/live_icon.png" mode=""></image>
+				<text class="live_no">NO SINGAL</text>
+				<!-- <text class="live_time">上课时间: 00:00:00</text> -->
+				<!-- 聊天信息 -->
+				<view class="talks">
+					<scroll-view scroll-y="true" :scroll-top="scrollTop" class="scroll-Y" scroll-with-animation="true" show-scrollbar="false">
+						<view class="myMsg" v-for="(item, index) in talk" :key="index">
+							<view class="myinfo">
+								<text class="mytime" :class="{ histime: item.name != globalData.logindata.u_nickname }">{{ item.time }}</text>
+								<text class="myname" :class="{ hisname: item.name != globalData.logindata.u_nickname }">{{ item.name }}</text>
+								<text class="mytext">{{ item.message }}</text>
+							</view>
+						</view>
+					</scroll-view>
+				</view>
+				<!-- 快捷消息按钮 -->
+				<image class="up" src="../../static/live_up.png" mode="" @click="shortCuts"></image>
+				<!-- 表情按钮 -->
+				<!-- <image class="face" src="../../static/live_face.png" mode=""></image> -->
+				<!-- 信息输入框 -->
+				<view class="inMsg">
+					<textarea class="msg" name="" id="" placeholder="请输入消息" v-model="message" maxlength="34"></textarea>
+					<!-- 发送按钮 -->
+					<view class="btn1" @click="my_msg">
+						<image class="sendImg" src="@/static/live_px.png" mode=""></image>
+						<text class="btn_text">发送</text>
+					</view>
+				</view>
+				<!-- 快捷消息 -->
+				<view class="shortCut" v-if="shortMsg == 1">
+					<scroll-view class="scroll2" scroll-y="true">
+						<view class="row" v-for="(item, index) in shortCut" :key="index" @click="chooseMsg(item.text)">
+							<text class="list">{{ item.text }}</text>
+							<view class="line"></view>
+						</view>
+					</scroll-view>
+				</view>
+			</view>
+			<!-- 直播视频窗口 -->
+			<view class="container" v-if="video == true" :class="{fullscree: fullscree == true}">
+				<rtc-surface-view v-if="engine" class="local" :uid="Number(teacherId)"></rtc-surface-view>
+			</view>
+			<!-- 返回按钮 -->
+			<div class="goback" @click="goback">
+				<image class="backimg" src="@/static/goback.png" mode="widthFix"></image>
+			</div>
+		</view>
+		
+<!-- ------------------------------------------------------------1280 * 672------------------------------------------------------------------ -->
+		<!-- 直播前检查 --> 
+		<view class="liveInIpad2" v-if="liveIn == 1 && globalData.width <= 1285">
+			<view class="infosIpad2">
+				<view class="infoIpad2">
+					<image class="info_imgIpad2" src="../../static/icons/live_gou.png" mode=""></image>
+					<text class="textIpad2">为了保证上课流畅，建议使用WIFI网络进行上课；</text>
+				</view>
+				<view class="infoIpad2">
+					<image class="info_imgIpad2" src="../../static/icons/live_gou.png" mode=""></image>
+					<text class="textIpad2">请提前确认钢琴MIDI已连接；</text>
+				</view>
+				<view class="infoIpad2">
+					<image class="info_imgIpad2" src="../../static/icons/live_gou.png" mode=""></image>
+					<text class="textIpad2">如中途出现掉线、黑屏、卡住等情况，可以尝试退出课堂重新进入。</text>
+				</view>
+			</view>
+			<view class="btn_inIpad2" @click="goLive"><text class="text1">进入课堂</text></view>
+		</view>
+		<!-- 直播详情页 -->
+		<view class="detailsIpad2" v-if="details == 1 && globalData.width <= 1920 && globalData.height <= 1080">
+			<view class="leftIpad2">
+				<!-- 无课件 -->
+				<view class="" v-if="leftCus == 0">
+					<image class="notcusIpad2" src="../../static/live_notcus.png" mode=""></image>
+					<text class="left_text1Ipad2">老师还没有分享课件哦</text>
+				</view>
+				<!-- 视频 -->
+				<video class="mp4Ipad2" v-if="leftCus == 1 && cusType == 1" ref="myVideo" controls="false" :src="videosrc" id="video" :poster="thumb" show-fullscreen-btn="false" @ended="ended" :key="keys">
+				</video>
+				<!-- 涂色 -->
+				<view class="keyboardIpad2" v-if="leftCus == 1 && cusType == 3">
+					<view class="whiteKeyIpad2" v-for="(item, index) in whitekey" :key="index" :style="{background:item.color}" @click="chooseWhite(item,index)"></view>
+					<view :class="index==2 || index==6 || index==9 || index==13 || index==16 ? 'blackKeyIpad2 null' : 'blackKeyIpad2'" v-for="(item, index) in blackkey" :key="index" :style="{background:item.color}" @click="chooseBlack(item,index)"></view>
+				</view>
+				<view class="bottomIpad2" v-if="leftCus == 1 && cusType == 3">
+					<view class="colorIpad2" v-for="(item,index) in colorList" :key="index" :class="{cur:current == index}" @click="chooseCor(index,item)">
+						<image :src="item.url" mode=""></image> 
+					</view>
+				</view>
+			</view>
+			<!-- 直播画面 -->
+			<!-- <view class="videoIpad2"></view> -->
+			<!-- 直播信息 -->
+			<!-- <image class="live_iconIpad2" src="../../static/live_icon.png" mode=""></image>
+			<text class="live_noIpad2">NO SINGAL</text>
+			<text class="live_timeIpad2">上课时间: 00:00:00</text> -->
+			<!-- 聊天信息 -->
+			<view class="talksIpad2" v-if="msgShow==true">
+				<scroll-view scroll-y="true" :scroll-top="scrollTop" class="scroll-Y" scroll-with-animation="true" show-scrollbar="false">
+					<view class="myMsgIpad2" v-for="(item, index) in talk" :key="index">
+						<view class="myinfo">
+							<text class="mytimeIpad2" :class="{ histimeIpad2: item.name != globalData.logindata.u_nickname }">{{ item.time }}</text>
+							<text class="mynameIpad2" :class="{ hisnameIpad2: item.name != globalData.logindata.u_nickname }">{{ item.name }}</text>
+							<text class="mytextIpad2">{{ item.message }}</text>
+						</view>
+					</view>
+				</scroll-view>
+			</view>
+			<!-- 快捷消息按钮 -->
+			<image class="upIpad2" src="../../static/live_up.png" mode="" v-if="msgShow==true" @click="shortCuts"></image>
+			<!-- 表情按钮 -->
+			<!-- <image class="faceIpad2" src="../../static/live_face.png" mode=""></image> -->
+			<!-- 信息输入框 -->
+			<view class="inMsgIpad2" v-if="msgShow==true">
+				<textarea class="msgIpad2" name="" id="" placeholder="请输入消息" v-model="message" maxlength="34"></textarea>
+				<!-- 发送按钮 -->
+				<view class="btn1Ipad2" @click="my_msg">
+					<image class="sendImgIpad2" src="@/static/live_px.png" mode=""></image>
+					<text class="btn_textIpad2">发送</text>
+				</view>
+			</view>
+			<!-- 快捷消息 -->
+			<view class="shortCutIpad2" v-if="shortMsg == 1">
+				<scroll-view class="scroll2Ipad2" scroll-y="true">
+					<view class="rowIpad2" v-for="(item, index) in shortCut" :key="index" @click="chooseMsg(item.text)">
+						<text class="listIpad2">{{ item.text }}</text>
+						<view class="lineIpad2"></view>
+					</view>
+				</scroll-view>
+			</view>
+			<!-- 直播视频窗口 -->
+			<view class="containerIpad2" v-if="video == true" :class="{fullscreeIpad2: fullscree == true}">
+				<rtc-surface-view v-if="engine" class="local" :uid="Number(teacherId)"></rtc-surface-view>
+			</view>
+			<!-- 返回按钮 -->
+			<div class="gobackIpad2" @click="goback">
+				<image class="backimg" src="@/static/goback.png" mode="widthFix"></image>
+			</div>
+		</view>
+	</view>
+</template>
+
+<script>
+	// 注意平台差异
+	// #ifdef APP-NVUE
+	const dom = weex.requireModule('dom')
+	// #endif
+	//Nvue无法调用main.js中的属性，需要单独引用
+	import request from '@/lib/request.js'
+	//引入权限组件
+	import { requestAndroidPermission } from "@/lib/permission";
+	//声网互动直播相关插件
+	import RtcEngine, {RtcChannel} from '../../components/Agora-RTC-JS/index';
+	import {ClientRole,ChannelProfile} from '../../components/Agora-RTC-JS/common/Enums';
+	import RtcSurfaceView from '../../components/Agora-RTC-JS/RtcSurfaceView';
+	//声网云信令插件
+	// #ifdef APP-PLUS
+	let agoraModule = uni.requireNativePlugin("XM-AgoraRtmModule")
+	// #endif
+	
+	// #ifdef APP-PLUS
+	let midiModule = uni.requireNativePlugin("XM-Midi2")
+	// #endif  
+	let wv;//计划创建的webview
+	//引入组件
+	import keyboard from "@/components/xml/keyboard.vue";
+	
+	export default {
+		// 使用组件
+		components: {
+			RtcSurfaceView: RtcSurfaceView, keyboard
+		},
+		data() {
+			return {
+				globalData: getApp().globalData,
+				s_id: '', //排课id
+				teacherId: '', //老师id
+				options: {}, //互动直播及云信令参数
+				//互动直播
+				engine: undefined,
+				isJoined: false,
+				remoteUid: [],
+				// 直播画面显示隐藏
+				video: false,
+				// 视频播放状态
+				play: false,
+				// 直播检测提示显示
+				liveIn: 1, 
+				// 直播详请显示
+				details: 0,
+				// 快捷消息显示
+				shortMsg: 0,
+				// 左边课件显示
+				leftCus: 0,
+				// 全部聊天信息
+				talk: [],
+				// 涂色键盘
+				whitekey: [],
+				blackkey: [],
+				colorList: [
+					{url:'../../static/live_color_1.png', color:'#e73227'},
+					{url:'../../static/live_color_2.png', color:'#ff760e'},
+					{url:'../../static/live_color_3.png', color:'#ffc50a'},
+					{url:'../../static/live_color_4.png', color:'#56da36'},
+					{url:'../../static/live_color_5.png', color:'#2a9fe2'},
+					{url:'../../static/live_color_6.png', color:'#8b4ecf'},
+					{url:'../../static/live_color_7.png', color:'#da33cf'},
+					{url:'../../static/live_color_8.png', color:'#525258'},
+					{url:'../../static/live_color_9.png', color:'#ffffff'},
+				],
+				color: '',
+				current: '',
+				scrollTop: 1000,
+				// 输入框输入的信息
+				message: '',
+				// 我的聊天信息
+				myinfo: [],
+				// 当前时间
+				time: '',
+				// 快捷消息
+				shortCut: [
+					{ text: '非常好，强烈推荐！' },
+					{ text: '好棒，支持支持支持！' },
+					{ text: '对不起，让您久等了。' }, 
+					{ text: '没关系，我刚到。' },
+					{ text: '给您添麻烦了。' },
+					{ text: '我能为您做什么？' },
+					{ text: '您好，请问您需要帮助吗？' }
+				],
+				// 直播画面全屏控制
+				fullscree: false,
+				// 聊天窗口
+				msgShow: false,
+				// 课件类型
+				cusType:'',
+				//视频
+				videosrc: '', //播放地址
+				thumb: '', //封面
+				keys: 1,
+				videoContext: null, //视频对象
+				//曲谱
+				title: '', //标题
+				path: '', //曲谱地址
+				pass: 80, //过关分数
+				webViewUrl: '', 
+				//webview进度样式
+				webviewStyles: {
+					progress: {
+						color: '#079FFF'
+					}
+				},
+				//曲谱是否显示完成
+				showFinish:false, 
+				//mid是否连接
+				midiDevice:false,
+				//当前收到的键值
+				key:[],
+				//曲谱是否渲染完成
+				rendered:false,
+				//xml转midi数据，用于卡住或跟弹
+				midi:[],
+				//当前弹奏位置
+				index:0,
+				//键盘显示状态
+				keyboard:false,
+				//键盘提示，默认自动
+				keyTips:'auto',
+				//当前要弹的琴键
+				curMidi:[],
+				//弹错的midi值
+				errMidi:[],
+				//弹错次数，如果连续弹错三次，自动弹起键盘提示
+				playError:0,
+				//开始按钮
+				startBtn:true,
+				//节拍器开关
+				metronome:false,
+				//跟弹卡住
+				follow:false,
+				//光标跟随，渲染完只能触发一次
+				followCursor:false,
+				//曲谱标准用时
+				standardTime:0,
+				//曲谱是否开始
+				playStart:false,
+				//计时器
+				timer:'',
+				//弹奏用时
+				playTime:0,
+				//按钮次数
+				playNote:0,
+				//总音符数
+				noteTotal:0,
+			}
+		},
+		onLoad(option) {
+			console.log(option)
+			this.s_id = option.s_id;
+			this.getTime();
+			this.whileKey();
+			this.blackKey();
+			//创建视频实例对象
+			this.videoContext = uni.createVideoContext('video');
+			console.log(getApp().globalData.width, getApp().globalData.height)
+			// //连接midi设备
+			// this.connect()
+			// let that = this
+			// //虚拟键盘按下&松开
+			// uni.$on('keyOn',function(data){
+			// 	that.keyStatus(data.note,'on')
+			// })
+			// uni.$on('keyOff',function(data){
+			// 	that.keyStatus(data.note,'off')
+			// })
+		},
+		onShow(){
+			// // #ifdef APP-PLUS
+			// 	//此对象相当于html5plus里的plus.webview.currentWebview()。在uni-app里vue页面直接使用plus.webview.currentWebview()无效
+			// 	var currentWebview = this.$scope.$getAppWebview()
+			// 	console.log(currentWebview)
+			// 	// console.log(this.$parent.$scope.$getAppWebview())
+			// 	console.log(plus.webview.currentWebview())
+			// 	// var currentWebview = plus.webview.currentWebview()
+			// 	//如果是页面初始化调用时，需要延时一下
+			// 	setTimeout(function() {
+			// 		wv = currentWebview.children()[0]
+			// 		//默认先把webview设为0
+			// 		// wv.setStyle({right:0,width:0,top:0,height:0})
+			// 		//隐藏曲谱webview
+			// 		plus.webview.hide()
+			// 	}, 2000);
+			// // #endif
+		},
+		onBackPress() {
+			this.engine && this.engine.destroy();
+		},
+		methods: {
+			// 涂色
+			whileKey(){
+				for(let i = 0; i<21; i++){
+					let obj = {color:'#fff'};
+					this.whitekey.push(obj)
+				}
+				console.log(this.whitekey)
+			},
+			blackKey(){
+				for(let i = 0; i<20; i++){
+					let obj = {color:'#fff'};
+					this.blackkey.push(obj)
+				}
+				console.log(this.blackkey)
+			},
+			// 铅笔
+			chooseCor(index,item){
+				this.color = item.color
+				this.current = index
+			},
+			// 白色按键
+			chooseWhite(item,index){
+				this.whitekey[index].color = this.color
+			},
+			// 黑色按键
+			chooseBlack(item,index){
+				this.blackkey[index].color = this.color
+			},
+			// 进入直播
+			goLive() {
+				this.liveIn = 0;
+				this.details = 1;
+				this.getdata()
+			},
+			// 获取数据
+			getdata() {
+				request({
+					url: '/piano/live/checkAuth.html',
+					data: { 
+						s_id: this.s_id ,
+					},
+					method: 'POST'
+				}).then(res => {
+					console.log(res)
+					if (res.data.code === 1000) {
+						this.options = res.data.data;
+						this.teacherId = this.options.teacher.toString().slice(-1)
+						//初始化云信令
+						this.initRtmEngine();
+						//初始化互动直播
+						this.initEngine();
+					} else {
+						uni.showToast({
+							title:res.data.msg,
+							icon:'none'
+						}) 
+					}
+				});
+			},
+			// 显示隐藏快捷消息
+			shortCuts() {
+				if (this.shortMsg == 0) {
+					this.shortMsg = 1;
+				} else if (this.shortMsg == 1) {
+					this.shortMsg = 0;
+				}
+			},
+			// 点击快捷消息发送消息
+			chooseMsg(text) {
+				this.shortCuts();
+				this.message = text;
+			},
+			// 获取当前本地时间
+			getTime() {
+				let hh = new Date().getHours() < 10 ? '0' + new Date().getHours() : new Date().getHours();
+				let mf = new Date().getMinutes() < 10 ? '0' + new Date().getMinutes() : new Date().getMinutes();
+				this.time = hh + ':' + mf;
+			},
+			// 发送我的输入内容
+			my_msg() {
+				if (this.message != '') {
+					// 我的聊天信息
+					this.myinfo = this.myinfo.concat({ type:'chat', message: this.message, time: this.time, name: this.globalData.logindata.u_nickname }).slice(-1);
+					// 全部聊天信息
+					this.talk = this.talk.concat(this.myinfo)
+					// 新消息置底
+					this.$nextTick(() => {
+						this.scrollTop = this.scrollTop + 100;
+					}); 
+					// 发送完消息清空输入框
+					this.message = '';
+					//发送频道消息  
+					this.sendChannelMessage(this.myinfo[0]);
+				}
+			},
+			
+			// ====================== 声网 云信令 ====================
+			//初始化
+			initRtmEngine() {
+				let that = this
+				agoraModule.initSDK({
+					appId: this.options.appid
+				}, (ret) => {
+					// console.log(ret)
+					//初始化结果回调
+					if (ret.success) {
+						that.loginRtm()
+					} else {
+						uni.showToast({
+							title:"聊天初始化失败",
+							icon:"none"
+						}) 
+					}
+				}, (message) => {
+					//消息和通知回调
+					/**
+					 * onConnectionStateChanged 连接状态改变回调
+					 * onMessageReceived 接收到个人发来的消息
+					 * onTokenExpired token过期，需要重新登录
+					 * onTokenPrivilegeWillExpire 
+					 * onPeersOnlineStatusChanged
+					 */
+					// console.log(message)
+					// 收到点对点消息
+					if(message.data.rtmMessage){
+						let mes = JSON.parse(message.data.rtmMessage.text)[0]
+						let studentId =  message.data.rtmMessage.messageType
+						// 收到开启视频直播消息
+						if(studentId == this.options.uid && mes.type == 'video' && mes.message == 'LiveShow'){
+							//加入频道
+							this.joinChannel()
+							this.video = true
+							this.sendPeerMessage(this.options.teacher, '直播画面已开启')
+						}
+						// 收到关闭视频直播消息
+						else if(studentId == this.options.uid && mes.type == 'video' && mes.message == 'LiveHide'){
+							//离开频道
+							this.leaveChannel()
+							this.video = false
+							this.sendPeerMessage(this.options.teacher, '直播画面未开启')
+						}
+						// 收到直播画面全屏模式消息
+						if(studentId == this.options.uid && mes.type == 'screen' && mes.message == 'Fullscreen'){
+							this.fullscree = true
+							this.sendPeerMessage(this.options.teacher, '全屏模式')
+						}
+						// 收到直播画面小屏模式消息
+						else if(studentId == this.options.uid && mes.type == 'screen' && mes.message == 'Smallscreen'){
+							this.fullscree = false
+							this.sendPeerMessage(this.options.teacher, '小屏模式')
+						}
+						// 收到聊天窗口开启的消息
+						if(studentId == this.options.uid && mes.type == 'video' && mes.message == 'ChatShow'){
+							this.msgShow = true
+							this.sendPeerMessage(this.options.teacher, '聊天窗口已开启')
+						}
+						// 收到聊天窗口关闭的消息
+						else if(studentId == this.options.uid && mes.type == 'video' && mes.message == 'ChatHide'){
+							this.msgShow = false
+							this.sendPeerMessage(this.options.teacher, '聊天窗口已关闭')
+						}
+					}
+				}) 
+			},
+			//登录
+			loginRtm() {
+				agoraModule.login({
+					token: this.options.chattoken,
+					userId: this.options.uid
+				}, (ret) => {
+					//回调在这里
+					if (ret.success) {
+						this.createAndJoinChannel()
+					} else {
+						uni.showToast({
+							title:ret.msg,
+							icon:"none"
+						})
+					}
+				})
+			},
+			//退出
+			logoutRtm() {
+				agoraModule.logout((ret) => {
+					//回调在这里
+					console.log(ret)
+				})
+			},
+			//创建并加入频道
+			createAndJoinChannel() {
+				agoraModule.createAndJoinChannel({
+					mChannelName: this.options.channel
+				}, (ret) => {
+					//方法结果回调在这里
+				}, (message) => {
+					//消息和通知回调
+					/**
+					 * onMemberCountUpdated 成员数量更新
+					 * onAttributesUpdated 自己找文档看
+					 * onMessageReceived 收到频道消息
+					 * onMemberJoined
+					 * onMemberLeft
+					 */
+					// 收到频道消息
+					if(message.data.rtmMessage){
+						let mes = JSON.parse(message.data.rtmMessage.text)
+						console.log(mes)
+						// 收到聊天消息
+						if(mes.type == 'chat'){
+							this.talk = this.talk.concat({ type:mes.type, message: mes.message, time: this.time, name:mes.name})
+							this.$nextTick(() => {
+								this.scrollTop = this.scrollTop + 100;
+							});
+						}
+						// 收到开启视频直播消息
+						if(mes.type == 'video' && mes.message == 'LiveShow'){
+							//加入频道
+							this.joinChannel()
+							this.video = true
+							this.sendPeerMessage(this.options.teacher, '直播画面已开启')
+						}
+						// 收到关闭视频直播消息 
+						else if(mes.type == 'video' && mes.message == 'LiveHide'){
+							//离开频道
+							this.leaveChannel()
+							this.video = false
+							this.sendPeerMessage(this.options.teacher, '直播画面已关闭')
+						}
+						// 收到直播画面小屏模式消息 
+						if(mes.type == 'screen' && mes.message == 'Fullscreen'){
+							this.fullscree = false
+							this.sendPeerMessage(this.options.teacher, '小屏模式')
+						}
+						// 收到直播画面全屏模式消息
+						else if(mes.type == 'screen' && mes.message == 'Smallscreen'){
+							this.fullscree = true
+							this.sendPeerMessage(this.options.teacher, '全屏模式')
+						} 
+						// 收到视频消息
+						if(mes.type == 'course' && mes.message == 1){
+							this.leftCus = 1;
+							this.cusType = 1;
+							this.thumb = mes.thumb;
+							this.videosrc = mes.video;
+							this.sendPeerMessage(this.options.teacher, '收到视频课件')
+						}
+						// 收到曲谱消息
+						else if(mes.type == 'course' && mes.message == 2){
+							this.leftCus = 1;
+							this.cusType = 2;
+							this.path = mes.xml //曲谱地址
+							// this.pass = mes.pass //闯关分数
+							this.sendPeerMessage(this.options.teacher, '收到曲谱课件')
+							this.webViewUrl = "/hybrid/html/build/index.html?url="+this.path+"&title="+this.title
+							setTimeout(function() {
+								//设备兼容
+								// if (that.globalData.width > 1925) {
+								// wv.setStyle({right:671,width:1622,top:80,height:557})
+								// } else if (that.globalData.width <= 1925 && that.globalData.width > 1655) {
+									// wv.setStyle({right:500,width:1322,top:170,height:757})
+								// } else if (that.globalData.width <= 1655 && that.globalData.width > 1285) {
+									// wv.setStyle({right:510,width:1000,top:180,height:570})
+								// } else if (that.globalData.width <= 1285) {
+									// wv.setStyle({right:370,width:850,top:150,height:400})
+								// }
+							}, 500);
+							//显示曲谱webview
+							plus.webview.show()
+							// 模拟3秒弹奏完返回分数给教师端
+							setTimeout(()=>{
+								this.sendPeerMessage(this.options.teacher, this.pass)
+							},3000)
+						}
+						// 收到视频开始播放消息
+						if(mes.type == 'video' && mes.message == 'play'){
+							if(this.play == false && this.videosrc != ''){
+								this.$nextTick(() => {
+									this.$refs.myVideo.play()
+								})
+								this.play = true
+								this.sendPeerMessage(this.options.teacher, '视频已开始播放')
+							}
+						}
+						// 收到视频暂停播放消息
+						else if(mes.type == 'video' && mes.message == 'pause'){
+							if(this.play == true){
+								this.$nextTick(() => {
+									this.$refs.myVideo.pause()
+								})
+								this.play = false
+								this.sendPeerMessage(this.options.teacher, '视频已暂停播放')
+							}
+						} 
+						// 收到聊天窗口开启的消息
+						if(mes.type == 'video' && mes.message == 'ChatShow'){
+							this.msgShow = true
+							this.sendPeerMessage(this.options.teacher, '聊天窗口已开启')
+						}
+						// 收到聊天窗口关闭的消息
+						else if(mes.type == 'video' && mes.message == 'ChatHide'){
+							this.msgShow = false
+							this.sendPeerMessage(this.options.teacher, '聊天窗口已关闭')
+						}
+					}
+				})
+			},
+			// 视频播放结束触发事件
+			ended(){
+				this.sendPeerMessage(this.options.teacher, '视频播放结束')
+			}, 
+			// 返回按钮
+			goback(){
+				uni.navigateTo({
+					url:'/pages/courses/courses'
+				})
+				this.leaveChannel()
+				this.leaveAndReleaseChannel()
+			},
+			//退出频道
+			leaveAndReleaseChannel() {
+				agoraModule.leaveAndReleaseChannel((ret) => {
+					//回调在这里
+					// console.log(ret)
+				})
+			},
+			//获取频道成员
+			getChannelMemberList() {
+				agoraModule.getChannelMemberList((ret) => {
+					//回调在这里
+					// console.log(ret)
+				})
+			},
+			//发送一对一消息
+			sendPeerMessage(peerId,message) {
+				agoraModule.sendPeerMessage({
+					mPeerId: peerId,
+					text: message
+				}, (ret) => { 
+					//回调在这里
+					console.log(ret)
+				})
+			},
+			//发送频道消息
+			sendChannelMessage(message) {
+				agoraModule.sendChannelMessage({
+					text: message
+				}, (ret) => {
+					//回调在这里
+					console.log(ret) 
+				})
+			},
+			
+			// ====================== 声网 互动直播 ====================
+			// 初始化
+			async initEngine() {
+				this.engine = await RtcEngine.create(this.options.appid);
+				// 监听直播相关数据
+				this.addListeners();
+				//视频默认禁用，你需要调用 enableVideo 启用视频流。
+				await this.engine.enableVideo();
+				//开启本地视频预览
+				await this.engine.startPreview();
+				//设置通道配置文件
+				await this.engine.setChannelProfile(ChannelProfile.LiveBroadcasting);
+				//设置角色 
+				await this.engine.setClientRole(ClientRole.Audience); //Broadcaster主播 Audience观众
+				//加入频道
+				// this.joinChannel()
+			},
+			//监听
+			addListeners() {
+				//加入频道
+				this.engine.addListener('JoinChannelSuccess', (channel, uid, elapsed) => {
+					console.info('JoinChannelSuccess', channel, uid, elapsed);
+					this.isJoined = true;
+				}); 
+				//成员进入
+				this.engine.addListener('UserJoined', (uid, elapsed) => {
+					console.info('UserJoined', uid, elapsed);
+					this.remoteUid = [...this.remoteUid, uid];
+				});
+				//成员下线
+				this.engine.addListener('UserOffline', (uid, reason) => {
+					console.info('UserOffline', uid, reason);
+					this.remoteUid = this.remoteUid.filter((value) => value !== uid);
+				});
+				//离开频道
+				this.engine.addListener('LeaveChannel', (stats) => {
+					console.info('LeaveChannel', stats);
+					this.isJoined = false; 
+					this.remoteUid = [];
+				});
+			},
+			async joinChannel() {
+				if (uni.getSystemInfoSync().platform === 'android') {
+					//获取设备音频权限
+					await requestAndroidPermission('android.permission.RECORD_AUDIO');
+					//获取设备摄像头权限
+					await requestAndroidPermission('android.permission.CAMERA');
+				}
+				await this.engine && this.engine.joinChannel(
+					this.options.token,
+					this.options.channel,
+					null,
+					Number(this.options.uid)
+				);
+			}, 
+			async leaveChannel() {
+				await this.engine && this.engine.leaveChannel();
+			},
+		// 	//---------------------曲谱--------------------------
+		// 	//断开MIDI连接
+		// 	disconnect() {
+		// 		try {
+		// 			midiModule.disconnect((ret) => {
+		// 				//回调在这里，未连接时也可以重复调用
+		// 			})
+		// 		} catch(e) {
+						
+		// 		}
+		// 	},
+		// 		//连接MIDI
+		// 		connect() {
+		// 			midiModule.connect((res) => {
+		// 				if (res.success) {
+		// 					this.midiDevice = true
+		// 				} else {
+		// 					uni.showToast({
+		// 						title:res.msg,
+		// 						icon:'error'
+		// 					})
+		// 				}
+		// 			}, (data)=> {
+		// 				// {
+		// 				// 	"success": true,
+		// 				// 	"data": {
+		// 				// 		"cable": 0,
+		// 				// 		"velocity": 40,
+		// 				// 		"channel": 0,
+		// 				// 		"note": 88
+		// 				// 	},
+		// 				// 	"msg": "onMidiNoteOn"
+		// 				// }
+		// 				//如果曲谱渲染完成，有midi值时，往下走
+		// 				if (this.rendered) {
+		// 					if (data.msg == 'onMidiNoteOn') { //按下
+		// 						this.keyDonw(data.data.note)
+		// 					} else if (data.msg == 'onMidiNoteOff') { //松开
+		// 						this.keyUp(data.data.note)
+		// 					}
+		// 				}
+		// 			})
+		// 		},
+		// 		//虚拟按键
+		// 		keyStatus(note,type) {
+		// 			if (!this.showFinish) return
+		// 			if (type == 'on') {
+		// 				if (this.midiDevice) {
+		// 					//参考收到的消息
+		// 					midiModule.sendMidiNoteOn({
+		// 						cable: 10,
+		// 						channel: 5,
+		// 						note: note,
+		// 						velocity: 100
+		// 					}, (ret) => {
+		// 						this.keyDonw(note)
+		// 					})
+		// 				} else {
+		// 					this.keyDonw(note)
+		// 				}
+		// 			} else {
+		// 				this.keyUp(note)
+		// 			}
+		// 		},
+		// 		//收到琴键按下
+		// 		keyDonw(value){
+		// 			//每按一次，记录一次
+		// 			this.playNote = this.playNote+1
+		// 			//当前弹奏位置
+		// 			let i = this.index;
+		// 			//按下键值
+		// 			this.down = value
+		// 			//是否已经存在值
+		// 			if (this.key.indexOf(value.toString()) == -1) {
+		// 				let key = this.key
+		// 				key.push(value.toString())
+		// 				this.key = key
+		// 			}
+		// 			this.errMidi.push(value.toString())
+		// 			this.errMidi = Array.from(this.errMidi)
+		// 			//midi总长度
+		// 			let count = this.midi.length
+		// 			//首先判断一次，midi是否为空
+		// 			if (!count) {
+		// 				return
+		// 			}
+		// 			//再判断i是否大于midi长度
+		// 			if (count - 1 < i) {
+		// 				this.curMidi = []
+		// 				return
+		// 			}
+		// 			//获取midi中的第i组值，并在this.key中查询，是否有值，即代表是否按下，如果i组中的值都能key中能找到，则触发下一步
+		// 			let midi = this.midi[i]
+		// 			for (let val in midi) {
+		// 				if (midi[val].pitch == 0) {
+		// 					continue
+		// 				}
+		// 				//如果有找不到的值，说明有键没按下
+		// 				if (this.key.indexOf(midi[val].pitch.toString()) == -1) {
+		// 					if (this.keyTips == 'auto') {
+		// 						//累计弹错次数
+		// 						let errNumb = this.playError
+		// 						this.playError = Number(errNumb) + 1
+		// 						//如果弹错五次，弹窗键盘提示，并将错误次数重置
+		// 						if (this.playError >= 5 ) {
+		// 							this.keyboard = true
+		// 						}
+		// 					}
+		// 					return
+		// 				}
+		// 			}
+		// 			//每往下走一步，清空一次当前保存的按键信息，以免出现之前按下的键未松开，导致误判，之前放在nextStep后
+		// 			this.key = []
+		// 			this.errMidi = []
+		// 			//判断，如果是系统打开键盘，弹对以后，自动关闭
+		// 			if (this.keyTips == 'auto') {
+		// 				//如果弹对，将错误次数重置
+		// 				this.playError = 0
+		// 				this.keyboard = false
+		// 			}
+		// 			//触发光标往下跳
+		// 			this.nextStep('step')
+		// 		},
+		// 		//收到琴键松开
+		// 		keyUp(value){
+		// 			//如果有键值
+		// 			if (this.key.length > 0) {
+		// 				this.up = value
+		// 				//过滤掉值为value的元素
+		// 				let setArr = new Set(this.key)
+		// 				let result = setArr.delete(value.toString())
+		// 				this.key = Array.from((setArr))
+		// 			}
+		// 			//错误按键
+		// 			if (this.errMidi.length > 0) {
+		// 				//过滤掉值为value的元素
+		// 				let setArrErr = new Set(this.errMidi)
+		// 				let resultErr = setArrErr.delete(value.toString())
+		// 				this.errMidi = Array.from(setArrErr)
+		// 			}
+		// 		},
+		// 		//开始按钮
+		// 		beginBtn(){
+		// 			if (!this.showFinish) return
+		// 			try {
+		// 				this.index = 0
+		// 				this.showCursor()
+		// 				//标识加载完成
+		// 				this.rendered = true
+		// 				this.startBtn = false
+		// 			} catch(e) {
+		// 				//TODO handle the exception
+		// 			}
+		// 		},
+		// 		//显示光标
+		// 		showCursor(){
+		// 			//调用webview中的方法
+		// 			wv.evalJS("showCursor();")
+		// 			//光标跟随
+		// 			if (!this.followCursor) {
+		// 				wv.evalJS("followCursor()")
+		// 				this.followCursor = true
+		// 			}
+		// 			let jump = true
+		// 			//当前位置的MIDI值
+		// 			let curMidi = this.midi[this.index]
+		// 			for (let k in curMidi) {
+		// 				//如果有值不等于0，则停止跳
+		// 				if (curMidi[k].pitch != 0) {
+		// 					jump = false
+		// 				}
+		// 			}
+		// 			if (jump) {
+		// 				// console.log('有休止符，继续走')
+		// 				this.nextStep('start')
+		// 			}
+		// 		},
+		// 		//下一步
+		// 		nextStep(type){
+		// 			//系统自动走的，不计算开始时间，用户弹奏开始计时，主要用type区分，type等于start是系统，step是用户弹奏
+		// 			//弹奏的时候，先判断是否开始，没有开始则设置数据为开始，并开启定时器，否则直接跳过
+		// 			//结束弹出分数时，设置结束
+		// 			if (type == 'step' && !this.playStart) {
+		// 				this.playStart = true
+		// 				this.timer = setInterval(() => {
+		// 					this.playTime = this.playTime+1
+		// 				}, 1000);
+		// 			}
+		// 			//判断当前是否是连音符，如果是连音符，再判断另外一只手是符有要弹的音符，如果没有则继续往前走一步（当前仅处理连音符两步的情况）
+		// 			let curNote = this.midi[this.index]
+		// 			//是否有连音符
+		// 			let link = false
+		// 			let endtime = 0
+		// 			for (let val in curNote) {
+		// 				//如果是连音符(有都是连音符的情况，需要判断最后值的大小，取最小的长度的连音符作判断)
+		// 				if (curNote[val].link == 1) {
+		// 					if (endtime == 0) {
+		// 						endtime = curNote[val].end
+		// 						link = true
+		// 					} else if (endtime > curNote[val].end) {//如果有更小的结束时间
+		// 						endtime = curNote[val].end
+		// 						link = true
+		// 					}
+		// 				} else {
+		// 					if (endtime == 0) {
+		// 						endtime = curNote[val].end
+		// 						link = false
+		// 					} else if (endtime > curNote[val].end) { //如果一起的有不是连音符，且时间小于连音符结束时间
+		// 						endtime = curNote[val].end
+		// 						link = false
+		// 					}
+		// 				}
+		// 			}
+		// 			//如果是卡住模式，则往下走，跟弹不需要管光标移动
+		// 			if (!this.follow) {
+		// 				wv.evalJS("nextStep();")
+		// 			}
+		// 			//获取下一步的索引
+		// 			this.index = this.index + 1
+		// 			//下一步的MIDI值
+		// 			let curMidi = this.curMidi = this.midi[this.index]
+		// 			//如果没有值，表示结束了，显示弹奏分数
+		// 			if (!curMidi) {
+		// 				this.curMidi = []
+		// 				//显示成绩
+		// 				// this.showScore()
+		// 				//提交成绩
+		// 				this.submission()
+		// 				return
+		// 			}
+		// 			//查看当前所在位置，是否为休止符，如果有则继续往下走
+		// 			let jump = true
+		// 			let starttime = 999999999999999
+		// 			for (let k in curMidi) {
+		// 				//如果有值不等于0，则停止跳
+		// 				if (curMidi[k].pitch != 0) {
+		// 					jump = false
+		// 				}
+		// 				if (curMidi[k].start < starttime) {
+		// 					starttime = curMidi[k].start
+		// 				}
+		// 			}
+		// 			if (jump) {
+		// 				// console.log('有休止符，继续走')
+		// 				this.nextStep('start')
+		// 			}
+		// 			//如果连音符为true
+		// 			if (link) {
+		// 				//当前(下一步索引后)，是符有要弹的音符，如果没有，再跳一步（通过判断下一个音符的开始时间，是否大于连音符的结束时间，如果大于等于，则跳一步，小于，则不跳
+		// 				if (endtime <= starttime) {
+		// 					// console.log('连音符，继续走')
+		// 					wv.evalJS("nextStep();")
+		// 				}
+		// 			}
+		// 		},
+		// 		//重置
+		// 		reset(){
+		// 			wv.evalJS("reset();")
+		// 			this.index = 0
+		// 			this.curMidi = this.midi[0]
+		// 			this.showCursor()
+		// 			this.rendered = true
+		// 		},
+		// 		//曲谱渲染完返回midi数据
+		// 		handlePostMessage(data){
+		// 			let obj = JSON.parse(data.detail.data[0].action) //获取到音符
+		// 			//速度
+		// 			this.tempo = obj.tempos[0].bpm
+		// 			//拍号
+		// 			this.signature = obj.timeSignatures[0].signature
+				
+		// 			let notes = obj.tracks[0].notes
+		// 			//计算曲谱标准用时，即最后一个音符的start+end时长，单位（s）,向上取整
+		// 			this.noteTotal = notes.length
+		// 			let startTime = notes[this.noteTotal-1].start
+		// 			let endTime = notes[this.noteTotal-1].end
+		// 			if (endTime) {
+		// 				this.standardTime = Math.ceil(endTime)
+		// 			} else { 
+		// 				this.standardTime = Math.ceil(startTime)
+		// 			}
+		// 			//XMl所有的midi值
+		// 			let allMidi = [] 
+		// 			//同时按下的键，转成新的数组
+		// 			let curNote = []
+		// 			//表示未开始
+		// 			let start = -1
+		// 			//过滤掉休止符后的音符数
+		// 			let noRest = 0
+		// 			for (let val in notes) {
+		// 				let e = notes[val]
+		// 				if (e.end != 0) {
+		// 					noRest++
+		// 				}
+		// 				e.start = Number(parseFloat(e.start).toFixed(5))
+		// 				// e.end = Number(parseFloat(e.end).toFixed(5))
+		// 				if (start == -1) { //第一个note直接放到新数组中
+		// 					curNote.push(e)
+		// 					start = e.start
+		// 				} else if (start == e.start) { //如果start值相等，表示跟上一个键同时按下
+		// 					curNote.push(e)
+		// 				} else { //如果不相等
+		// 					//先把之前的值，保存到总MIDI数组上
+		// 					allMidi.push(curNote)
+		// 					//然后再清空当前计算的键值
+		// 					curNote = []
+		// 					//把当前的值放到当前计算的数组上
+		// 					curNote.push(e)
+		// 					start = e.start
+		// 				}
+		// 				//如果是最后一个音符
+		// 				if (val == notes.length - 1) {
+		// 					allMidi.push(curNote)
+		// 					curNote = []
+		// 					start = -1
+		// 				}
+		// 			}
+		// 			this.midi = allMidi
+		// 			this.curMidi = allMidi[0]
+		// 			this.noteTotal = noRest
+		// 			//隐藏正在加载提示
+		// 			uni.hideLoading();
+		// 			//曲谱显示完成
+		// 			this.showFinish = true
+		// 			//点击开始
+		// 			this.beginBtn()
+		// 		},
+		// 		//加载中
+		// 		showLoading(text,time){
+		// 			uni.showLoading({
+		// 				title:text ? text : '加载中...',
+		// 			})
+		// 			setTimeout(() => {
+		// 				uni.hideLoading()
+		// 			}, time ? time : 1000)
+		// 		},
+		// 		//分数相关数据重置
+		// 		scoreReset(){
+		// 			//清定时器
+		// 			clearInterval(this.timer)
+		// 			//时间清零
+		// 			this.playTime = 0
+		// 			//开始
+		// 			this.playStart = false
+		// 			//弹奏音符数
+		// 			this.playNote = 0
+		// 			//分数重置
+		// 			this.score = 0
+		// 			//曲谱显示完成
+		// 			this.showFinish = true
+		// 		},
+			},
+		// beforeDestroy() {
+		// 	//断开midi
+		// 	this.disconnect()
+		// 	//移除虚拟键盘监听
+		// 	uni.$off('keyOn')
+		// 	uni.$off('keyOff')
+		// },
+	}
+</script>
+
+<style>
+/* --------------------------------------长条屏（2560*720）------------------------------------ */
+/* 直播前提示页面 */
+.liveIn {
+	width: 2560px;
+	height: 720px;
+	background-color: #0a1050;
+	position: relative;
+}
+/* 背景 */
+.liveIn .infos {
+	margin-left: 1000px;
+	margin-top: 150px;
+}
+.liveIn .info {
+	width: 800px;
+	height: 100px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+}
+.info_img {
+	width: 36px;
+	height: 36px;
+}
+.text {
+	font-size: 25px;
+	font-weight: normal;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	color: #fff;
+	margin-left: 10px;
+	margin-top: 5px;
+}
+.liveIn .btn_in {
+	width: 300px;
+	height: 75px;
+	padding: 15px 67px 10px 77px;
+	border: 2px solid #fff;
+	border-radius: 40px;
+	color: #fff;
+	margin-left: 1200px;
+	margin-top: 30px;
+}
+.text1 {
+	font-size: 36px;
+	color: #fff;
+}
+.none {
+	width: 0;
+}
+/* 直播详情页 */
+.details {
+	width: 2560px;
+	height: 720px;
+	background-color: #0a1050;
+	display: flex;
+	justify-content: center;
+	flex-direction: row;
+}
+.left,
+.mp4{
+	width: 1400px;
+	height: 630px;
+	background-color: #fff;
+	border-radius: 12px;
+}
+.left{
+	margin-top: 60px;
+}
+.mp4 {
+	background-color: #000;
+}
+.notcus {
+	width: 108px;
+	height: 85px;
+	margin-top: 250px;
+	margin-left: 650px;
+}
+.left_text1 {
+	width: 130px;
+	height: 15px;
+	font-size: 12px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	text-align: left;
+	color: #000;
+	margin-top: 20px;
+	margin-left: 650px;
+}
+.play_icon {
+	width: 125px;
+	height: 125px;
+	margin-top: 250px;
+	margin-left: 650px;
+}
+.left_text {
+	width: 329px;
+	height: 32px;
+	font-size: 30px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	text-align: center;
+	color: #333;
+	margin-left: 650px;
+	margin-top: 20px;
+}
+/* 涂色 */
+.keyboard {
+	width: 1204px;
+	height: 350px;
+	margin-top: 50px;
+	margin-left: 100px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+}
+.blackKey {
+	width: 40px;
+	height: 240px;
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #000;
+	background-color: #fff;
+	left: -1167px;
+	margin-right: 17px;
+}
+.null {
+	/* visibility: hidden; */
+}
+.whiteKey {
+	width: 57px;
+	height: 350px;
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #000;
+}
+
+.bottom {
+	width: 1204px;
+	height: 170px;
+	margin-top: 70px;
+	margin-left: 100px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+}
+.bottom .color {
+	width: 50px; 
+	height: 140px;
+	top: 20px;
+	left: 100px;
+	margin-right: 70px;
+} 
+.cur{
+	margin-top: -20px;
+}
+.right {
+	width: 680px;
+	height: 630px;
+	background-color: #fff; 
+	margin-top: 60px;
+	border-radius: 12px;
+	margin-left: 20px;
+	position: relative; 
+}
+.video,
+.container { 
+	width: 630px;
+	height: 300px;
+	position: absolute;
+}
+.video{
+	left: 30px;
+	top: 20px;
+	background-color: #000;
+}
+.container {
+	right: 250px;
+	top: 80px;
+	flex: 1;
+	z-index: 99;
+	border: 2px solid #00fa9a;
+}
+/* 全屏 */
+.fullscree {
+	width: 2560px;
+	height: 720px;
+	position: absolute; 
+	left: 0px;
+	top: 0px;
+}
+.local {
+	flex: 1;
+}
+.remoteContainer {
+	position: absolute;
+	left: 0;
+	top: 0;
+	flex-direction: row;
+}
+.remote {
+	width: 120;
+	height: 120;
+}
+.live_icon {
+	width: 38px;
+	height: 42px;
+	position: absolute;
+	top: 150px;
+	left: 290px;
+}
+.live_no {
+	width: 135px;
+	height: 23px;
+	opacity: 0.39;
+	font-size: 24px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #fff;
+	position: absolute;
+	top: 160px;
+	left: 350px;
+}
+.live_time {
+	width: 183px;
+	height: 23px;
+	font-size: 20px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #df122a;
+	position: absolute;
+	top: 280px;
+	right: 30px;
+}
+
+/* 聊天信息 */
+.talks { 
+	width: 630px;
+	height: 185px;
+	position: absolute;
+	top: 380px;
+	left: 30px;
+	display: flex;
+	flex-direction: column;
+}
+.scroll-Y {
+	width: 630px;
+	height: 185px;
+}
+/* 其他学员聊天记录 */
+.talk {
+	display: flex;
+	flex-direction: row;
+	margin: 5px 0px 5px 5px;
+}
+.talk_time {
+	width: 40px;
+	height: 15px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #888;
+}
+.talk_name {
+	color: #00fa9a !important;
+}
+.talk_msg {
+	width: 500px;
+	height: 20px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #333;
+	margin-left: 5px;
+	overflow: hidden;
+}
+/* 我的聊天记录 */
+.myMsg {
+	margin-left: 5px;
+}
+.myinfo {
+	height: 20px;
+	display: flex;
+	flex-direction: row;
+	margin-bottom: 5px;
+	margin-top: 5px;
+}
+.mytime {
+	width: 40px;
+	height: 15px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #0077f1;
+	text-align: left;
+}
+.myname {
+	width: 70px;
+	height: 18px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #0077f1;
+	margin-left: 10px;
+	text-align: left;
+}
+.histime,
+.hisname {
+	color: #F00;
+}
+.mytext {
+	width: 500px;
+	height: 20px;
+	border-radius: 5px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #333;
+	text-align: left;
+	overflow: hidden;
+	margin-left: 5px;
+}
+.up {
+	width: 30px;
+	height: 30px;
+	position: absolute;
+	bottom: 15px;
+	left: 40px;
+	opacity: 0.5;
+}
+.face {
+	width: 30px;
+	height: 30px;
+	position: absolute;
+	bottom: 17px;
+	left: 520px;
+}
+/* 消息输入框 */
+.inMsg {
+	width: 580px;
+	height: 45px;
+	border-radius: 15px;
+	position: absolute;
+	left: 80px;
+	bottom: 10px;
+}
+.msg {
+	width: 580px;
+	height: 45px;
+	font-size: 15px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	text-align: left;
+	color: #bdbdbd;
+	line-height: 31px;
+	color: #333;
+	border-width: 2px;
+	border-style: solid;
+	border-color: #e7e7e7;
+	padding-left: 10px;
+	padding-top: 10px;
+}
+.btn1 {
+	width: 102px;
+	height: 44px;
+	position: absolute;
+	right: 0px;
+	background-color: #0077f1;
+	display: flex;
+	justify-content: center;
+	flex-direction: row;
+}
+.sendImg {
+	width: 20px;
+	height: 20px;
+	margin-top: 12px;
+	margin-right: 10px;
+}
+.btn_text {
+	width: 33px;
+	height: 18px;
+	font-size: 16px;
+	color: #fff;
+	margin-top: 13px;
+}
+/* 快捷消息 */
+.shortCut {
+	width: 528px;
+	height: 168px;
+	background-color: #fff;
+	position: absolute;
+	bottom: 68px;
+	left: 30px;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #0077f1;
+}
+.scroll2 {
+	height: 168px;
+}
+.row {
+	margin-top: 20px;
+}
+.list {
+	width: 150px;
+	height: 20px;
+	font-size: 12px;
+	font-family: Source Han Sans CN, Source Han Sans CN-Regular;
+	font-weight: 400;
+	text-align: left;
+	color: #333;
+	margin-left: 10px;
+}
+.line {
+	width: 500px;
+	height: 1px;
+	margin-left: 10px;
+	background-color: #333;
+	opacity: 0.2;
+}
+/* 返回按钮 */
+.goback{
+	position: absolute;
+	bottom:40px;
+	right:10px;
+}
+.goback .backimg{
+	width:180px;
+	height:72px;
+}
+
+/* --------------------------------------平板（1280*672）------------------------------------ */
+/* 直播前提示页面 */
+.liveInIpad2 {
+	width: 1280px;
+	height: 672px;
+	background-color: #0a1050;
+	position: relative;
+}
+.liveInIpad2 .infosIpad2 {
+	margin-left: 400px;
+	margin-top: 150px;
+}
+.liveInIpad2 .infoIpad2 {
+	width: 800px;
+	height: 100px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+}
+.info_imgIpad2 {
+	width: 30px;
+	height: 30px;
+}
+.textIpad2 {
+	font-size: 20px;
+	font-weight: normal;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	color: #fff;
+	margin-left: 10px;
+	margin-top: 5px;
+}
+.liveInIpad2 .btn_inIpad2 {
+	width: 300px; 
+	height: 75px;
+	padding: 15px 67px 10px 77px;
+	border: 2px solid #fff;
+	border-radius: 40px;
+	color: #fff;
+	margin-left: 500px;
+	margin-top: 30px;
+}
+.text1Ipad2 {
+	font-size: 36px;
+	color: #fff;
+}
+.noneIpad2 {
+	width: 0;
+}
+/* 直播详情页 */
+.detailsIpad2 {
+	width: 1280px;
+	height: 672px;
+	position: relative;
+	background-color: #0a1050;
+}
+.leftIpad2,
+.mp4Ipad2 {
+	width: 1280px;
+	height: 672px;
+	background-color: #fff;
+	border-radius: 12px;
+}
+.mp4Ipad2 {
+	/* object-fit:fill */
+}
+/* 无课件显示 */
+.notcusIpad2 {
+	width: 108px;
+	height: 85px;
+	margin-top: 280px;
+	margin-left: 580px;
+}
+.left_text1Ipad2 {
+	width: 130px;
+	height: 15px;
+	font-size: 12px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	text-align: left;
+	color: #000;
+	margin-top: 20px;
+	margin-left: 580px;
+}
+.play_iconIpad2 {
+	width: 100px;
+	height: 100px;
+	margin-top: 250px;
+	margin-left: 580px;
+}
+.left_textIpad2 {
+	width: 329px;
+	height: 32px;
+	font-size: 30px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	text-align: center;
+	color: #333;
+	margin-left: 470px;
+	margin-top: 20px;
+}
+/* 涂色 */
+.keyboardIpad2 {
+	width: 1100px;
+	height: 350px;
+	margin-top: 80px;
+	margin-left: 90px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+}
+.blackKeyIpad2 {
+	width: 40px;
+	height: 240px;
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #000;
+	background-color: #fff;
+	left: -1071px;
+	margin-left: 12px;
+}
+.null {
+	/* visibility: hidden; */
+}
+.whiteKeyIpad2 {
+	width: 52px;
+	height: 350px;
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #000;
+}
+.bottomIpad2 {
+	width: 1204px;
+	height: 170px;
+	margin-top: 70px;
+	margin-left: 100px;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+}
+.bottomIpad2 .colorIpad2 {
+	width: 50px; 
+	height: 140px;
+	top: 20px;
+	left: 30px;
+	margin-right: 70px;
+} 
+.cur{
+	margin-top: -20px;
+}
+.videoIpad2,
+.containerIpad2 {
+	width: 400px;
+	height: 250px;
+	border-radius: 12px;
+	position: absolute;
+}
+.videoIpad2 {
+	right: 20px;
+	bottom: 10px;
+	background-color: #000;
+}
+.containerIpad2 {
+	right: 20px;
+	bottom: 10px;
+	flex: 1;
+	z-index: 99;
+}
+/* 直播画面 */
+.fullscreeIpad2 {
+	width: 1280px;
+	height: 672px;
+	position: absolute; 
+	left: 0px;
+	top: 0px;
+}
+.live_iconIpad2 {
+	width: 25px;
+	height: 28px;
+	position: absolute;
+	left: 1000px;
+	top: 520px;
+}
+.live_noIpad2 {
+	width: 150px;
+	height: 20px;
+	opacity: 0.39;
+	font-size: 20px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #fff;
+	position: absolute;
+	left: 1040px;
+	top: 523px;
+}
+.live_timeIpad2 {
+	width: 150px;
+	height: 23px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #df122a;
+	position: absolute;
+	top: 620px;
+	right: 30px;
+}
+/* 聊天信息 */
+.talksIpad2 {
+	width: 400px;
+	height: 220px;
+	position: absolute;
+	top: 380px;
+	left: 20px;
+	display: flex;
+}
+.scroll-Y {
+	height: 220px;
+}
+.myMsgIpad2 {
+	margin-left: 5px;
+}
+.myinfoIpad2 {
+	height: 20px;
+	display: flex;
+	flex-direction: row;
+	margin-bottom: 5px;
+	margin-top: 5px;
+}
+.mytimeIpad2 {
+	width: 40px;
+	height: 15px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #0077f1;
+	text-align: left;
+}
+.histimeIpad2 {
+	color: #F00;
+}
+.mynameIpad2 {
+	height: 18px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #0077f1;
+	margin-left: 10px;
+	text-align: left;
+}
+.hisnameIpad2 {
+	color: #F00;
+}
+.mytextIpad2 {
+	width: 300px;
+	height: 20px;
+	border-radius: 5px;
+	font-size: 16px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	color: #333;
+	text-align: left;
+	overflow: hidden;
+	margin-left: 10px;
+}
+.upIpad2 {
+	width: 20px;
+	height: 20px;
+	position: absolute;
+	bottom: 30px;
+	left: 30px;
+	opacity: 0.5;
+}
+.faceIpad2 {
+	width: 25px;
+	height: 25px;
+	position: absolute;
+	top: 650px;
+	left: 340px;
+}
+/* 消息输入框 */
+.inMsgIpad2 {
+	width: 500px;
+	height: 45px;
+	border-radius: 15px;
+	position: absolute;
+	left: 70px;
+	top: 610px;
+}
+.msgIpad2 {
+	width: 400px;
+	height: 45px;
+	font-size: 15px;
+	font-family: Hiragino Sans GB, Hiragino Sans GB-W3;
+	font-weight: normal;
+	text-align: left;
+	color: #bdbdbd;
+	line-height: 31px;
+	color: #333;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #e7e7e7;
+	padding-left: 10px;
+	padding-top: 10px;
+	border-radius: 50px;
+}
+.btn1Ipad2 {
+	width: 100px;
+	height: 45px;
+	position: absolute;
+	left: 300px;
+	background-color: #0077f1;
+	display: flex;
+	justify-content: center;
+	flex-direction: row;
+	border-top-right-radius: 50px;
+	border-bottom-right-radius: 50px;
+}
+.sendImgIpad2 {
+	width: 20px;
+	height: 20px;
+	margin-top: 12px;
+	margin-right: 10px;
+}
+.btn_textIpad2 {
+	width: 33px;
+	height: 18px;
+	font-size: 16px;
+	color: #fff;
+	margin-top: 13px;
+}
+/* 快捷消息 */
+.shortCutIpad2 {
+	width: 200px;
+	height: 168px;
+	background-color: #fff;
+	position: absolute;
+	bottom: 70px;
+	left: 30px;
+	border-style: solid;
+	border-width: 1px;
+	border-color: #0077f1;
+}
+.scroll2Ipad2 {
+	height: 168px;
+}
+.rowIpad2 {
+	margin-top: 20px;
+}
+.listIpad2 {
+	width: 150px;
+	height: 20px;
+	font-size: 12px;
+	font-family: Source Han Sans CN, Source Han Sans CN-Regular;
+	font-weight: 400;
+	text-align: left;
+	color: #333;
+	margin-left: 10px;
+}
+.lineIpad2 {
+	width: 500px;
+	height: 1px;
+	margin-left: 10px;
+	background-color: #333;
+	opacity: 0.2;
+}
+/* 返回按钮 */
+.gobackIpad2 {
+	position: absolute;
+	top: 20px;
+	right: 45px;
+}
+.gobackIpad2 .backimg {
+	width: 130px;
+	height: 52px;
+}
+</style>

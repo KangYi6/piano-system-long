@@ -1,0 +1,458 @@
+<!-- 琴键组件 -->
+<template>
+	<view :class="globalData.width > 1925 ? 'keyboard' : 'keyboard-pad'" v-if="keyboard" :style="'width:'+globalData.width+'px'">
+		<view @click="keyOn(21)" v-if="curMidi.some(res=>res.pitch==21)" class="whiteKey key21 cur"></view>
+		<view @click="keyOn(21)" v-else-if="errMidi.some(res=>res==21)" class="whiteKey key21 err"></view>
+		<view @click="keyOn(21)" v-else class="whiteKey key21"></view>
+		<view @click="keyOn(23)" v-if="curMidi.some(res=>res.pitch==23)" class="whiteKey key23 cur"></view>
+		<view @click="keyOn(23)" v-else-if="errMidi.some(res=>res==23)" class="whiteKey key23 err"></view>
+		<view @click="keyOn(23)" v-else class="whiteKey key23"></view>
+		<view @click="keyOn(24)" v-if="curMidi.some(res=>res.pitch==24)" class="whiteKey key24 cur"></view>
+		<view @click="keyOn(24)" v-else-if="errMidi.some(res=>res==24)" class="whiteKey key24 err"></view>
+		<view @click="keyOn(24)" v-else class="whiteKey key24"></view>
+		<view @click="keyOn(26)" v-if="curMidi.some(res=>res.pitch==26)" class="whiteKey key26 cur"></view>
+		<view @click="keyOn(26)" v-else-if="errMidi.some(res=>res==26)" class="whiteKey key26 err"></view>
+		<view @click="keyOn(26)" v-else class="whiteKey key26"></view>
+		<view @click="keyOn(28)" v-if="curMidi.some(res=>res.pitch==28)" class="whiteKey key28 cur"></view>
+		<view @click="keyOn(28)" v-else-if="errMidi.some(res=>res==28)" class="whiteKey key28 err"></view>
+		<view @click="keyOn(28)" v-else class="whiteKey key28"></view>
+		<view @click="keyOn(29)" v-if="curMidi.some(res=>res.pitch==29)" class="whiteKey key29 cur"></view>
+		<view @click="keyOn(29)" v-else-if="errMidi.some(res=>res==29)" class="whiteKey key29 err"></view>
+		<view @click="keyOn(29)" v-else class="whiteKey key29"></view>
+		<view @click="keyOn(31)" v-if="curMidi.some(res=>res.pitch==31)" class="whiteKey key31 cur"></view>
+		<view @click="keyOn(31)" v-else-if="errMidi.some(res=>res==31)" class="whiteKey key31 err"></view>
+		<view @click="keyOn(31)" v-else class="whiteKey key31"></view>
+		<view @click="keyOn(33)" v-if="curMidi.some(res=>res.pitch==33)" class="whiteKey key33 cur"></view>
+		<view @click="keyOn(33)" v-else-if="errMidi.some(res=>res==33)" class="whiteKey key33 err"></view>
+		<view @click="keyOn(33)" v-else class="whiteKey key33"></view>
+		<view @click="keyOn(35)" v-if="curMidi.some(res=>res.pitch==35)" class="whiteKey key35 cur"></view>
+		<view @click="keyOn(35)" v-else-if="errMidi.some(res=>res==35)" class="whiteKey key35 err"></view>
+		<view @click="keyOn(35)" v-else class="whiteKey key35"></view>
+		<view @click="keyOn(36)" v-if="curMidi.some(res=>res.pitch==36)" class="whiteKey key36 cur"></view>
+		<view @click="keyOn(36)" v-else-if="errMidi.some(res=>res==36)" class="whiteKey key36 err"></view>
+		<view @click="keyOn(36)" v-else class="whiteKey key36"></view>
+		<view @click="keyOn(38)" v-if="curMidi.some(res=>res.pitch==38)" class="whiteKey key38 cur"></view>
+		<view @click="keyOn(38)" v-else-if="errMidi.some(res=>res==38)" class="whiteKey key38 err"></view>
+		<view @click="keyOn(38)" v-else class="whiteKey key38"></view>
+		<view @click="keyOn(40)" v-if="curMidi.some(res=>res.pitch==40)" class="whiteKey key40 cur"></view>
+		<view @click="keyOn(40)" v-else-if="errMidi.some(res=>res==40)" class="whiteKey key40 err"></view>
+		<view @click="keyOn(40)" v-else class="whiteKey key40"></view>
+		<view @click="keyOn(41)" v-if="curMidi.some(res=>res.pitch==41)" class="whiteKey key41 cur"></view>
+		<view @click="keyOn(41)" v-else-if="errMidi.some(res=>res==41)" class="whiteKey key41 err"></view>
+		<view @click="keyOn(41)" v-else class="whiteKey key41"></view>
+		<view @click="keyOn(43)" v-if="curMidi.some(res=>res.pitch==43)" class="whiteKey key43 cur"></view>
+		<view @click="keyOn(43)" v-else-if="errMidi.some(res=>res==43)" class="whiteKey key43 err"></view>
+		<view @click="keyOn(43)" v-else class="whiteKey key43"></view>
+		<view @click="keyOn(45)" v-if="curMidi.some(res=>res.pitch==45)" class="whiteKey key45 cur"></view>
+		<view @click="keyOn(45)" v-else-if="errMidi.some(res=>res==45)" class="whiteKey key45 err"></view>
+		<view @click="keyOn(45)" v-else class="whiteKey key45"></view>
+		<view @click="keyOn(47)" v-if="curMidi.some(res=>res.pitch==47)" class="whiteKey key47 cur"></view>
+		<view @click="keyOn(47)" v-else-if="errMidi.some(res=>res==47)" class="whiteKey key47 err"></view>
+		<view @click="keyOn(47)" v-else class="whiteKey key47"></view>
+		<view @click="keyOn(48)" v-if="curMidi.some(res=>res.pitch==48)" class="whiteKey key48 cur"></view>
+		<view @click="keyOn(48)" v-else-if="errMidi.some(res=>res==48)" class="whiteKey key48 err"></view>
+		<view @click="keyOn(48)" v-else class="whiteKey key48"></view>
+		<view @click="keyOn(50)" v-if="curMidi.some(res=>res.pitch==50)" class="whiteKey key50 cur"></view>
+		<view @click="keyOn(50)" v-else-if="errMidi.some(res=>res==50)" class="whiteKey key50 err"></view>
+		<view @click="keyOn(50)" v-else class="whiteKey key50"></view>
+		<view @click="keyOn(52)" v-if="curMidi.some(res=>res.pitch==52)" class="whiteKey key52 cur"></view>
+		<view @click="keyOn(52)" v-else-if="errMidi.some(res=>res==52)" class="whiteKey key52 err"></view>
+		<view @click="keyOn(52)" v-else class="whiteKey key52"></view>
+		<view @click="keyOn(53)" v-if="curMidi.some(res=>res.pitch==53)" class="whiteKey key53 cur"></view>
+		<view @click="keyOn(53)" v-else-if="errMidi.some(res=>res==53)" class="whiteKey key53 err"></view>
+		<view @click="keyOn(53)" v-else class="whiteKey key53"></view>
+		<view @click="keyOn(55)" v-if="curMidi.some(res=>res.pitch==55)" class="whiteKey key55 cur"></view>
+		<view @click="keyOn(55)" v-else-if="errMidi.some(res=>res==55)" class="whiteKey key55 err"></view>
+		<view @click="keyOn(55)" v-else class="whiteKey key55"></view>
+		<view @click="keyOn(57)" v-if="curMidi.some(res=>res.pitch==57)" class="whiteKey key57 cur"></view>
+		<view @click="keyOn(57)" v-else-if="errMidi.some(res=>res==57)" class="whiteKey key57 err"></view>
+		<view @click="keyOn(57)" v-else class="whiteKey key57"></view>
+		<view @click="keyOn(59)" v-if="curMidi.some(res=>res.pitch==59)" class="whiteKey key59 cur"></view>
+		<view @click="keyOn(59)" v-else-if="errMidi.some(res=>res==59)" class="whiteKey key59 err"></view>
+		<view @click="keyOn(59)" v-else class="whiteKey key59"></view>
+		<view @click="keyOn(60)" v-if="curMidi.some(res=>res.pitch==60)" class="whiteKey key60 cur"></view>
+		<view @click="keyOn(60)" v-else-if="errMidi.some(res=>res==60)" class="whiteKey key60 err"></view>
+		<view @click="keyOn(60)" v-else class="whiteKey key60"></view>
+		<view @click="keyOn(62)" v-if="curMidi.some(res=>res.pitch==62)" class="whiteKey key62 cur"></view>
+		<view @click="keyOn(62)" v-else-if="errMidi.some(res=>res==62)" class="whiteKey key62 err"></view>
+		<view @click="keyOn(62)" v-else class="whiteKey key62"></view>
+		<view @click="keyOn(64)" v-if="curMidi.some(res=>res.pitch==64)" class="whiteKey key64 cur"></view>
+		<view @click="keyOn(64)" v-else-if="errMidi.some(res=>res==64)" class="whiteKey key64 err"></view>
+		<view @click="keyOn(64)" v-else class="whiteKey key64"></view>
+		<view @click="keyOn(65)" v-if="curMidi.some(res=>res.pitch==65)" class="whiteKey key65 cur"></view>
+		<view @click="keyOn(65)" v-else-if="errMidi.some(res=>res==65)" class="whiteKey key65 err"></view>
+		<view @click="keyOn(65)" v-else class="whiteKey key65"></view>
+		<view @click="keyOn(67)" v-if="curMidi.some(res=>res.pitch==67)" class="whiteKey key67 cur"></view>
+		<view @click="keyOn(67)" v-else-if="errMidi.some(res=>res==67)" class="whiteKey key67 err"></view>
+		<view @click="keyOn(67)" v-else class="whiteKey key67"></view>
+		<view @click="keyOn(69)" v-if="curMidi.some(res=>res.pitch==69)" class="whiteKey key69 cur"></view>
+		<view @click="keyOn(69)" v-else-if="errMidi.some(res=>res==69)" class="whiteKey key69 err"></view>
+		<view @click="keyOn(69)" v-else class="whiteKey key69"></view>
+		<view @click="keyOn(71)" v-if="curMidi.some(res=>res.pitch==71)" class="whiteKey key71 cur"></view>
+		<view @click="keyOn(71)" v-else-if="errMidi.some(res=>res==71)" class="whiteKey key71 err"></view>
+		<view @click="keyOn(71)" v-else class="whiteKey key71"></view>
+		<view @click="keyOn(72)" v-if="curMidi.some(res=>res.pitch==72)" class="whiteKey key72 cur"></view>
+		<view @click="keyOn(72)" v-else-if="errMidi.some(res=>res==72)" class="whiteKey key72 err"></view>
+		<view @click="keyOn(72)" v-else class="whiteKey key72"></view>
+		<view @click="keyOn(74)" v-if="curMidi.some(res=>res.pitch==74)" class="whiteKey key74 cur"></view>
+		<view @click="keyOn(74)" v-else-if="errMidi.some(res=>res==74)" class="whiteKey key74 err"></view>
+		<view @click="keyOn(74)" v-else class="whiteKey key74"></view>
+		<view @click="keyOn(76)" v-if="curMidi.some(res=>res.pitch==76)" class="whiteKey key76 cur"></view>
+		<view @click="keyOn(76)" v-else-if="errMidi.some(res=>res==76)" class="whiteKey key76 err"></view>
+		<view @click="keyOn(76)" v-else class="whiteKey key76"></view>
+		<view @click="keyOn(77)" v-if="curMidi.some(res=>res.pitch==77)" class="whiteKey key77 cur"></view>
+		<view @click="keyOn(77)" v-else-if="errMidi.some(res=>res==77)" class="whiteKey key77 err"></view>
+		<view @click="keyOn(77)" v-else class="whiteKey key77"></view>
+		<view @click="keyOn(79)" v-if="curMidi.some(res=>res.pitch==79)" class="whiteKey key79 cur"></view>
+		<view @click="keyOn(79)" v-else-if="errMidi.some(res=>res==79)" class="whiteKey key79 err"></view>
+		<view @click="keyOn(79)" v-else class="whiteKey key79"></view>
+		<view @click="keyOn(81)" v-if="curMidi.some(res=>res.pitch==81)" class="whiteKey key81 cur"></view>
+		<view @click="keyOn(81)" v-else-if="errMidi.some(res=>res==81)" class="whiteKey key81 err"></view>
+		<view @click="keyOn(81)" v-else class="whiteKey key81"></view>
+		<view @click="keyOn(83)" v-if="curMidi.some(res=>res.pitch==83)" class="whiteKey key83 cur"></view>
+		<view @click="keyOn(83)" v-else-if="errMidi.some(res=>res==83)" class="whiteKey key83 err"></view>
+		<view @click="keyOn(83)" v-else class="whiteKey key83"></view>
+		<view @click="keyOn(84)" v-if="curMidi.some(res=>res.pitch==84)" class="whiteKey key84 cur"></view>
+		<view @click="keyOn(84)" v-else-if="errMidi.some(res=>res==84)" class="whiteKey key84 err"></view>
+		<view @click="keyOn(84)" v-else class="whiteKey key84"></view>
+		<view @click="keyOn(86)" v-if="curMidi.some(res=>res.pitch==86)" class="whiteKey key86 cur"></view>
+		<view @click="keyOn(86)" v-else-if="errMidi.some(res=>res==86)" class="whiteKey key86 err"></view>
+		<view @click="keyOn(86)" v-else class="whiteKey key86"></view>
+		<view @click="keyOn(88)" v-if="curMidi.some(res=>res.pitch==88)" class="whiteKey key88 cur"></view>
+		<view @click="keyOn(88)" v-else-if="errMidi.some(res=>res==88)" class="whiteKey key88 err"></view>
+		<view @click="keyOn(88)" v-else class="whiteKey key88"></view>
+		<view @click="keyOn(89)" v-if="curMidi.some(res=>res.pitch==89)" class="whiteKey key89 cur"></view>
+		<view @click="keyOn(89)" v-else-if="errMidi.some(res=>res==89)" class="whiteKey key89 err"></view>
+		<view @click="keyOn(89)" v-else class="whiteKey key89"></view>
+		<view @click="keyOn(91)" v-if="curMidi.some(res=>res.pitch==91)" class="whiteKey key91 cur"></view>
+		<view @click="keyOn(91)" v-else-if="errMidi.some(res=>res==91)" class="whiteKey key91 err"></view>
+		<view @click="keyOn(91)" v-else class="whiteKey key91"></view>
+		<view @click="keyOn(93)" v-if="curMidi.some(res=>res.pitch==93)" class="whiteKey key93 cur"></view>
+		<view @click="keyOn(93)" v-else-if="errMidi.some(res=>res==93)" class="whiteKey key93 err"></view>
+		<view @click="keyOn(93)" v-else class="whiteKey key93"></view>
+		<view @click="keyOn(95)" v-if="curMidi.some(res=>res.pitch==95)" class="whiteKey key95 cur"></view>
+		<view @click="keyOn(95)" v-else-if="errMidi.some(res=>res==95)" class="whiteKey key95 err"></view>
+		<view @click="keyOn(95)" v-else class="whiteKey key95"></view>
+		<view @click="keyOn(96)" v-if="curMidi.some(res=>res.pitch==96)" class="whiteKey key96 cur"></view>
+		<view @click="keyOn(96)" v-else-if="errMidi.some(res=>res==96)" class="whiteKey key96 err"></view>
+		<view @click="keyOn(96)" v-else class="whiteKey key96"></view>
+		<view @click="keyOn(98)" v-if="curMidi.some(res=>res.pitch==98)" class="whiteKey key98 cur"></view>
+		<view @click="keyOn(98)" v-else-if="errMidi.some(res=>res==98)" class="whiteKey key98 err"></view>
+		<view @click="keyOn(98)" v-else class="whiteKey key98"></view>
+		<view @click="keyOn(100)" v-if="curMidi.some(res=>res.pitch==100)" class="whiteKey key100 cur"></view>
+		<view @click="keyOn(100)" v-else-if="errMidi.some(res=>res==100)" class="whiteKey key100 err"></view>
+		<view @click="keyOn(100)" v-else class="whiteKey key100"></view>
+		<view @click="keyOn(101)" v-if="curMidi.some(res=>res.pitch==101)" class="whiteKey key101 cur"></view>
+		<view @click="keyOn(101)" v-else-if="errMidi.some(res=>res==101)" class="whiteKey key101 err"></view>
+		<view @click="keyOn(101)" v-else class="whiteKey key101"></view>
+		<view @click="keyOn(103)" v-if="curMidi.some(res=>res.pitch==103)" class="whiteKey key103 cur"></view>
+		<view @click="keyOn(103)" v-else-if="errMidi.some(res=>res==103)" class="whiteKey key103 err"></view>
+		<view @click="keyOn(103)" v-else class="whiteKey key103"></view>
+		<view @click="keyOn(105)" v-if="curMidi.some(res=>res.pitch==105)" class="whiteKey key105 cur"></view>
+		<view @click="keyOn(105)" v-else-if="errMidi.some(res=>res==105)" class="whiteKey key105 err"></view>
+		<view @click="keyOn(105)" v-else class="whiteKey key105"></view>
+		<view @click="keyOn(107)" v-if="curMidi.some(res=>res.pitch==107)" class="whiteKey key107 cur"></view>
+		<view @click="keyOn(107)" v-else-if="errMidi.some(res=>res==107)" class="whiteKey key107 err"></view>
+		<view @click="keyOn(107)" v-else class="whiteKey key107"></view>
+		<view @click="keyOn(108)" v-if="curMidi.some(res=>res.pitch==108)" class="whiteKey key108 cur"></view>
+		<view @click="keyOn(108)" v-else-if="errMidi.some(res=>res==108)" class="whiteKey key108 err"></view>
+		<view @click="keyOn(108)" v-else class="whiteKey key108"></view>
+
+		
+		<view @click="keyOn(22)" v-if="curMidi.some(res=>res.pitch==22)" class="blackKey key22 cur"></view>
+		<view @click="keyOn(22)" v-else-if="errMidi.some(res=>res==22)" class="blackKey key22 err"></view>
+		<view @click="keyOn(22)" v-else class="blackKey key22"></view>
+		<view @click="keyOn(25)" v-if="curMidi.some(res=>res.pitch==25)" class="blackKey key25 cur"></view>
+		<view @click="keyOn(25)" v-else-if="errMidi.some(res=>res==25)" class="blackKey key25 err"></view>
+		<view @click="keyOn(25)" v-else class="blackKey key25"></view>
+		<view @click="keyOn(27)" v-if="curMidi.some(res=>res.pitch==27)" class="blackKey key27 cur"></view>
+		<view @click="keyOn(27)" v-else-if="errMidi.some(res=>res==27)" class="blackKey key27 err"></view>
+		<view @click="keyOn(27)" v-else class="blackKey key27"></view>
+		<view @click="keyOn(30)" v-if="curMidi.some(res=>res.pitch==30)" class="blackKey key30 cur"></view>
+		<view @click="keyOn(30)" v-else-if="errMidi.some(res=>res==30)" class="blackKey key30 err"></view>
+		<view @click="keyOn(30)" v-else class="blackKey key30"></view>
+		<view @click="keyOn(32)" v-if="curMidi.some(res=>res.pitch==32)" class="blackKey key32 cur"></view>
+		<view @click="keyOn(32)" v-else-if="errMidi.some(res=>res==32)" class="blackKey key32 err"></view>
+		<view @click="keyOn(32)" v-else class="blackKey key32"></view>
+		<view @click="keyOn(34)" v-if="curMidi.some(res=>res.pitch==34)" class="blackKey key34 cur"></view>
+		<view @click="keyOn(34)" v-else-if="errMidi.some(res=>res==34)" class="blackKey key34 err"></view>
+		<view @click="keyOn(34)" v-else class="blackKey key34"></view>
+		<view @click="keyOn(37)" v-if="curMidi.some(res=>res.pitch==37)" class="blackKey key37 cur"></view>
+		<view @click="keyOn(37)" v-else-if="errMidi.some(res=>res==37)" class="blackKey key37 err"></view>
+		<view @click="keyOn(37)" v-else class="blackKey key37"></view>
+		<view @click="keyOn(39)" v-if="curMidi.some(res=>res.pitch==39)" class="blackKey key39 cur"></view>
+		<view @click="keyOn(39)" v-else-if="errMidi.some(res=>res==39)" class="blackKey key39 err"></view>
+		<view @click="keyOn(39)" v-else class="blackKey key39"></view>
+		<view @click="keyOn(42)" v-if="curMidi.some(res=>res.pitch==42)" class="blackKey key42 cur"></view>
+		<view @click="keyOn(42)" v-else-if="errMidi.some(res=>res==42)" class="blackKey key42 err"></view>
+		<view @click="keyOn(42)" v-else class="blackKey key42"></view>
+		<view @click="keyOn(44)" v-if="curMidi.some(res=>res.pitch==44)" class="blackKey key44 cur"></view>
+		<view @click="keyOn(44)" v-else-if="errMidi.some(res=>res==44)" class="blackKey key44 err"></view>
+		<view @click="keyOn(44)" v-else class="blackKey key44"></view>
+		<view @click="keyOn(46)" v-if="curMidi.some(res=>res.pitch==46)" class="blackKey key46 cur"></view>
+		<view @click="keyOn(46)" v-else-if="errMidi.some(res=>res==46)" class="blackKey key46 err"></view>
+		<view @click="keyOn(46)" v-else class="blackKey key46"></view>
+		<view @click="keyOn(49)" v-if="curMidi.some(res=>res.pitch==49)" class="blackKey key49 cur"></view>
+		<view @click="keyOn(49)" v-else-if="errMidi.some(res=>res==49)" class="blackKey key49 err"></view>
+		<view @click="keyOn(49)" v-else class="blackKey key49"></view>
+		<view @click="keyOn(51)" v-if="curMidi.some(res=>res.pitch==51)" class="blackKey key51 cur"></view>
+		<view @click="keyOn(51)" v-else-if="errMidi.some(res=>res==51)" class="blackKey key51 err"></view>
+		<view @click="keyOn(51)" v-else class="blackKey key51"></view>
+		<view @click="keyOn(54)" v-if="curMidi.some(res=>res.pitch==54)" class="blackKey key54 cur"></view>
+		<view @click="keyOn(54)" v-else-if="errMidi.some(res=>res==54)" class="blackKey key54 err"></view>
+		<view @click="keyOn(54)" v-else class="blackKey key54"></view>
+		<view @click="keyOn(56)" v-if="curMidi.some(res=>res.pitch==56)" class="blackKey key56 cur"></view>
+		<view @click="keyOn(56)" v-else-if="errMidi.some(res=>res==56)" class="blackKey key56 err"></view>
+		<view @click="keyOn(56)" v-else class="blackKey key56"></view>
+		<view @click="keyOn(58)" v-if="curMidi.some(res=>res.pitch==58)" class="blackKey key58 cur"></view>
+		<view @click="keyOn(58)" v-else-if="errMidi.some(res=>res==58)" class="blackKey key58 err"></view>
+		<view @click="keyOn(58)" v-else class="blackKey key58"></view>
+		<view @click="keyOn(61)" v-if="curMidi.some(res=>res.pitch==61)" class="blackKey key61 cur"></view>
+		<view @click="keyOn(61)" v-else-if="errMidi.some(res=>res==61)" class="blackKey key61 err"></view>
+		<view @click="keyOn(61)" v-else class="blackKey key61"></view>
+		<view @click="keyOn(63)" v-if="curMidi.some(res=>res.pitch==63)" class="blackKey key63 cur"></view>
+		<view @click="keyOn(63)" v-else-if="errMidi.some(res=>res==63)" class="blackKey key63 err"></view>
+		<view @click="keyOn(63)" v-else class="blackKey key63"></view>
+		<view @click="keyOn(66)" v-if="curMidi.some(res=>res.pitch==66)" class="blackKey key66 cur"></view>
+		<view @click="keyOn(66)" v-else-if="errMidi.some(res=>res==66)" class="blackKey key66 err"></view>
+		<view @click="keyOn(66)" v-else class="blackKey key66"></view>
+		<view @click="keyOn(68)" v-if="curMidi.some(res=>res.pitch==68)" class="blackKey key68 cur"></view>
+		<view @click="keyOn(68)" v-else-if="errMidi.some(res=>res==68)" class="blackKey key68 err"></view>
+		<view @click="keyOn(68)" v-else class="blackKey key68"></view>
+		<view @click="keyOn(70)" v-if="curMidi.some(res=>res.pitch==70)" class="blackKey key70 cur"></view>
+		<view @click="keyOn(70)" v-else-if="errMidi.some(res=>res==70)" class="blackKey key70 err"></view>
+		<view @click="keyOn(70)" v-else class="blackKey key70"></view>
+		<view @click="keyOn(73)" v-if="curMidi.some(res=>res.pitch==73)" class="blackKey key73 cur"></view>
+		<view @click="keyOn(73)" v-else-if="errMidi.some(res=>res==73)" class="blackKey key73 err"></view>
+		<view @click="keyOn(73)" v-else class="blackKey key73"></view>
+		<view @click="keyOn(75)" v-if="curMidi.some(res=>res.pitch==75)" class="blackKey key75 cur"></view>
+		<view @click="keyOn(75)" v-else-if="errMidi.some(res=>res==75)" class="blackKey key75 err"></view>
+		<view @click="keyOn(75)" v-else class="blackKey key75"></view>
+		<view @click="keyOn(78)" v-if="curMidi.some(res=>res.pitch==78)" class="blackKey key78 cur"></view>
+		<view @click="keyOn(78)" v-else-if="errMidi.some(res=>res==78)" class="blackKey key78 err"></view>
+		<view @click="keyOn(78)" v-else class="blackKey key78"></view>
+		<view @click="keyOn(80)" v-if="curMidi.some(res=>res.pitch==80)" class="blackKey key80 cur"></view>
+		<view @click="keyOn(80)" v-else-if="errMidi.some(res=>res==80)" class="blackKey key80 err"></view>
+		<view @click="keyOn(80)" v-else class="blackKey key80"></view>
+		<view @click="keyOn(82)" v-if="curMidi.some(res=>res.pitch==82)" class="blackKey key82 cur"></view>
+		<view @click="keyOn(82)" v-else-if="errMidi.some(res=>res==82)" class="blackKey key82 err"></view>
+		<view @click="keyOn(82)" v-else class="blackKey key82"></view>
+		<view @click="keyOn(85)" v-if="curMidi.some(res=>res.pitch==85)" class="blackKey key85 cur"></view>
+		<view @click="keyOn(85)" v-else-if="errMidi.some(res=>res==85)" class="blackKey key85 err"></view>
+		<view @click="keyOn(85)" v-else class="blackKey key85"></view>
+		<view @click="keyOn(87)" v-if="curMidi.some(res=>res.pitch==87)" class="blackKey key87 cur"></view>
+		<view @click="keyOn(87)" v-else-if="errMidi.some(res=>res==87)" class="blackKey key87 err"></view>
+		<view @click="keyOn(87)" v-else class="blackKey key87"></view>
+		<view @click="keyOn(90)" v-if="curMidi.some(res=>res.pitch==90)" class="blackKey key90 cur"></view>
+		<view @click="keyOn(90)" v-else-if="errMidi.some(res=>res==90)" class="blackKey key90 err"></view>
+		<view @click="keyOn(90)" v-else class="blackKey key90"></view>
+		<view @click="keyOn(92)" v-if="curMidi.some(res=>res.pitch==92)" class="blackKey key92 cur"></view>
+		<view @click="keyOn(92)" v-else-if="errMidi.some(res=>res==92)" class="blackKey key92 err"></view>
+		<view @click="keyOn(92)" v-else class="blackKey key92"></view>
+		<view @click="keyOn(94)" v-if="curMidi.some(res=>res.pitch==94)" class="blackKey key94 cur"></view>
+		<view @click="keyOn(94)" v-else-if="errMidi.some(res=>res==94)" class="blackKey key94 err"></view>
+		<view @click="keyOn(94)" v-else class="blackKey key94"></view>
+		<view @click="keyOn(97)" v-if="curMidi.some(res=>res.pitch==97)" class="blackKey key97 cur"></view>
+		<view @click="keyOn(97)" v-else-if="errMidi.some(res=>res==97)" class="blackKey key97 err"></view>
+		<view @click="keyOn(97)" v-else class="blackKey key97"></view>
+		<view @click="keyOn(99)" v-if="curMidi.some(res=>res.pitch==99)" class="blackKey key99 cur"></view>
+		<view @click="keyOn(99)" v-else-if="errMidi.some(res=>res==99)" class="blackKey key99 err"></view>
+		<view @click="keyOn(99)" v-else class="blackKey key99"></view>
+		<view @click="keyOn(102)" v-if="curMidi.some(res=>res.pitch==102)" class="blackKey key102 cur"></view>
+		<view @click="keyOn(102)" v-else-if="errMidi.some(res=>res==102)" class="blackKey key102 err"></view>
+		<view @click="keyOn(102)" v-else class="blackKey key102"></view>
+		<view @click="keyOn(104)" v-if="curMidi.some(res=>res.pitch==104)" class="blackKey key104 cur"></view>
+		<view @click="keyOn(104)" v-else-if="errMidi.some(res=>res==104)" class="blackKey key104 err"></view>
+		<view @click="keyOn(104)" v-else class="blackKey key104"></view>
+		<view @click="keyOn(106)" v-if="curMidi.some(res=>res.pitch==106)" class="blackKey key106 cur"></view>
+		<view @click="keyOn(106)" v-else-if="errMidi.some(res=>res==106)" class="blackKey key106 err"></view>
+		<view @click="keyOn(106)" v-else class="blackKey key106"></view>
+	</view>
+</template>
+<script>
+	export default {
+		name:'keyboard',
+		props: {
+			keyboard:{
+				type: Boolean,
+				value:false
+			},
+			curMidi: {
+				type: Array,
+				value: []
+			},
+			errMidi: {
+				type: Array,
+				value: []
+			}
+		},
+		data() {
+			return {
+				globalData:getApp().globalData,
+			}
+		},
+		mounted() {
+			
+		},
+		methods: {
+			keyOn(note){
+				uni.$emit('keyOn',{note:note});
+			},
+			keyOff(note){
+				uni.$emit('keyOff',{note:note});
+			}
+		}
+	}
+</script>
+
+<style>
+	/* 长条屏 */
+	.keyboard {
+		width:2860px;
+		height:30px;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		position: fixed;
+		bottom:0; 
+		background: rgb(207,207,207); 
+		box-shadow: 0px 0px 10px 2px rgba(0,0,0,0.3); 
+	}
+	.keyboard .whiteKey {
+		width: 55.5px;
+		height: 30px;
+		background-color: #fff;
+		border-top-left-radius: 5px;
+		border-top-right-radius: 5px;
+		margin-right: 1px;
+		left:-205px;
+	}
+	.keyboard .blackKey {
+		width: 30px;
+		height: 20px;
+		background-color: #000;
+		border-top-left-radius: 5px;
+		border-top-right-radius: 5px;
+		/* left: -2930px; */
+		left: -3090px;
+		top:10px;
+	}
+	.keyboard .key22{margin-right: 69px;}
+	.keyboard .key25{margin-right: 33px;}
+	.keyboard .key27{margin-right: 69px;}
+	.keyboard .key30{margin-right: 33px;}
+	.keyboard .key32{margin-right: 34px;}
+	.keyboard .key34{margin-right: 69px;}
+	.keyboard .key37{margin-right: 36px;}
+	.keyboard .key39{margin-right: 69px;}
+	.keyboard .key42{margin-right: 34px;}
+	.keyboard .key44{margin-right: 36px;}
+	.keyboard .key46{margin-right: 69px;}
+	.keyboard .key49{margin-right: 35px;}
+	.keyboard .key51{margin-right: 69px;}
+	.keyboard .key54{margin-right: 35px;}
+	.keyboard .key56{margin-right: 36px;}
+	.keyboard .key58{margin-right: 70px;}
+	.keyboard .key61{margin-right: 35px;}
+	.keyboard .key63{margin-right: 69px;}
+	.keyboard .key66{margin-right: 35px;}
+	.keyboard .key68{margin-right: 35px;}
+	.keyboard .key70{margin-right: 70px;}
+	.keyboard .key73{margin-right: 35px;}
+	.keyboard .key75{margin-right: 69px;}
+	.keyboard .key78{margin-right: 35px;}
+	.keyboard .key80{margin-right: 35px;}
+	.keyboard .key82{margin-right: 70px;}
+	.keyboard .key85{margin-right: 35px;}
+	.keyboard .key87{margin-right: 69px;}
+	.keyboard .key90{margin-right: 35px;}
+	.keyboard .key92{margin-right: 35px;}
+	.keyboard .key94{margin-right: 70px;}
+	.keyboard .key97{margin-right: 35px;}
+	.keyboard .key99{margin-right: 69px;}
+	.keyboard .key102{margin-right: 15.5px;}
+	.keyboard .key104{margin-right: 15.5px;}
+	.keyboard .key106{margin-right: 15.5px;}
+
+	/* 标准屏 */
+	.keyboard-pad{
+		height:40px;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		position: absolute;
+		bottom:0; 
+		left:0;
+		background: rgb(207,207,207); 
+		box-shadow: 0px 0px 10px 2px rgba(0,0,0,0.3); 
+	}
+	.keyboard-pad .whiteKey {
+		background-color:#fff;
+		width: 14.2rpx;
+		height:100%;
+		border-top-left-radius:0;
+		border-top-right-radius:0;
+		border-bottom-left-radius:4px;
+		border-bottom-right-radius:4px;
+		margin-right:0.1rpx;
+	}
+	.keyboard-pad .blackKey {
+		width:9rpx;
+		height:25px;
+		border-top-left-radius:0;
+		border-top-right-radius:0;
+		border-bottom-left-radius:4px;
+		border-bottom-right-radius:4px;
+		background-color: #000;
+		left: -742rpx;
+	}
+	.keyboard-pad .key22{margin-right:20rpx;}
+	.keyboard-pad .key25{margin-right:6rpx}
+	.keyboard-pad .key27{margin-right:20rpx}
+	.keyboard-pad .key30{margin-right:6rpx}
+	.keyboard-pad .key32{margin-right:5rpx}
+	.keyboard-pad .key34{margin-right:20rpx}
+	.keyboard-pad .key37{margin-right:6rpx;}
+	.keyboard-pad .key39{margin-right:20rpx;}
+	.keyboard-pad .key42{margin-right:5rpx;}
+	.keyboard-pad .key44{margin-right:5rpx;}
+	.keyboard-pad .key46{margin-right:20rpx;}
+	.keyboard-pad .key49{margin-right:6rpx;}
+	.keyboard-pad .key51{margin-right:20rpx;}
+	.keyboard-pad .key54{margin-right:6rpx;}
+	.keyboard-pad .key56{margin-right:5rpx;}
+	.keyboard-pad .key58{margin-right:20rpx;}
+	.keyboard-pad .key61{margin-right:5rpx;}
+	.keyboard-pad .key63{margin-right:20rpx;}
+	.keyboard-pad .key66{margin-right:6rpx;}
+	.keyboard-pad .key68{margin-right:5rpx;}
+	.keyboard-pad .key70{margin-right:20rpx;}
+	.keyboard-pad .key73{margin-right:6rpx;}
+	.keyboard-pad .key75{margin-right:20rpx;}
+	.keyboard-pad .key78{margin-right:6rpx;}
+	.keyboard-pad .key80{margin-right:5rpx;}
+	.keyboard-pad .key82{margin-right:20rpx;}
+	.keyboard-pad .key85{margin-right:6rpx;}
+	.keyboard-pad .key87{margin-right:20rpx;}
+	.keyboard-pad .key90{margin-right:6rpx;}
+	.keyboard-pad .key92{margin-right:5rpx;}
+	.keyboard-pad .key94{margin-right:19rpx;}
+	.keyboard-pad .key97{margin-right:6rpx;}
+	.keyboard-pad .key99{margin-right:20rpx;}
+	.keyboard-pad .key102{margin-right:6rpx;}
+	.keyboard-pad .key104{margin-right:5rpx;}
+	.keyboard-pad .key106{margin-right:20rpx;}
+	.keyboard-pad .key108 .whiteKey{width:100%;margin-right:0;}
+	.black{
+		background: #000;
+	}
+	.white{
+		background: #fff;
+	}
+	.cur{
+		background-color: #98ef96 !important;
+	}
+	.err{
+		background-color: #f00 !important;
+	}
+</style>

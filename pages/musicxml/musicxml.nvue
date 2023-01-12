@@ -1,0 +1,1177 @@
+<template>
+	<div class="appbg" :style="{ background: bgColor[colorIndex] }">
+		<!-- 曲谱界面  -->
+		<div class="detail"> 
+			<web-view ref="wv" :style="wvStyle" src="/hybrid/html/build/index.html" @onPostMessage="message"></web-view>
+		</div>
+		<keyboard ref="keybord" :curMidi="curMidi" :errMidi="errMidi" :keyboard="operation.keyboard"></keyboard>
+	</div>
+</template>
+
+<script>
+	let app = getApp()
+	// #ifdef APP-PLUS
+	let midiModule = uni.requireNativePlugin("XM-Midi2")
+	// #endif
+	let wv;//计划创建的曲谱webview
+	let metronomeWv; //计划创建的节拍器webview
+	//引入组件
+	import keyboard from "@/components/xml/keyboard.nvue";
+	//Nvue无法调用main.js中的属性，需要单独引用
+	import request from '@/lib/request.js'
+	import { MIDIhead,Metronomeswitch,Metronomevolume,Speedset,Metronomenumset } from '@/lib/MIDIinstructions.js'
+	export default {
+		//使用组件
+		components:{
+			keyboard
+		},
+		data() {
+			return {
+				wvStyle:{
+					height:0,
+					width:0,
+					marginleft:20,
+					margintop:20,
+					scrollIndicator:"none"
+				},
+				operation:{}, //操作按钮
+				xmlInfo:{}, //曲谱数据
+				xmlParam:{}, //曲谱参数
+				xmlData:'', //XML数据
+				score:{}, //计算成绩相关数据
+				color:false, //是否标注颜色
+				key:[], //当前收到的键值
+				index:0, //当前弹奏位置
+				followCurMidi:[], //跟弹要弹的琴键
+				curMidi:[], //卡住要弹的琴键
+				errMidi:[], //弹错的midi值
+				playError:0, //弹错次数，如果连续弹错三次，自动弹起键盘提示
+				practise:0, //练习模式,如果用户点击了光标，则进入练习模式(不计算成绩，弹完后继续弹)
+				listen:false, //监听曲谱
+				transpose:{}, //移调
+				colorIndex:3, //背景颜色索引
+				bgColor:["#FEF0DE","#dbf5ce","#eeeeee","#ffffff"], //背景颜色值
+				subNVue:null,
+				load:false,
+			}
+		},
+		onLoad() {
+			this.wvStyle.width = app.globalData.width - 40
+			this.wvStyle.height = app.globalData.height - 70
+			//初始化
+			this.init()
+		},
+		onReady() {
+			//如果没有MIDI设置，使用网页版节拍器
+			if (!this.$store.state.midiDevice) {
+				// #ifdef APP-PLUS
+					// 节拍器
+					metronomeWv = plus.webview.create('/hybrid/html/metronome/index.html', '__worker__', {
+						opacity: 0,
+						width: '0px',
+						height: '0px',
+						'uni-app': 'none',
+						blockNetworkImage: true,
+						webviewBGTransparent: true
+					});
+					metronomeWv.setBlockNetworkImage(true);
+					metronomeWv.setContentVisible(false);
+					metronomeWv.setVisible(false);
+					metronomeWv.addEventListener('close', (res) => {
+					});
+				// #endif
+			}
+		},
+		onShow:function(){
+			//获取nvue子窗口
+			this.subNVue = uni.getSubNVueById('courseMenu')
+			//默认隐藏	
+			this.subNVue.hide()
+			//获取store数据，如果需要显示
+			if (this.$store.state.course.show) {
+				//更新数据
+				uni.$emit('upData')
+				//显示子组件
+				this.subNVue.show()
+			}
+			//获取曲谱数据
+			this.into()
+			//设置参数
+			this.operation.follow = false // 暂时全部为卡住
+			this.operation.hands = this.$store.state.xmlParam.hands
+			this.operation.metronome = this.$store.state.xmlParam.metronome
+			this.operation.keyTips = this.$store.state.xmlParam.keytips
+			if (this.operation.keyTips == 'open') {
+				this.operation.keyboard = true
+			} else {
+				this.operation.keyboard = false
+			}
+			//传递参数
+			this.$refs.wv.evalJs("setParam("+JSON.stringify(this.$store.state.xmlParam)+")")
+			//如果是闯关
+			if (this.xmlInfo.ptype == 2) {
+				//闯关按钮
+				this.$refs.wv.evalJs("methodBtn('through',"+false+")")
+			} else {
+				//隐藏闯关和练习按钮
+				this.$refs.wv.evalJs("methodBtn('other',"+false+")")
+			}
+			let that = this
+			//琴键按下
+			uni.$on('noteOn',function(data){
+				that.keyDonw(data.note)
+			})
+			//琴键松开
+			uni.$on('noteOff',function(data){
+				that.keyUp(data.note)
+			})
+			//虚拟键盘按下&松开
+			uni.$on('keyOn',function(data){
+				that.keyStatus(data.note,'on')
+			})
+			uni.$on('keyOff',function(data){
+				that.keyStatus(data.note,'off')
+			})
+			//课件切换（闯关或AI课程）
+			uni.$on('change',function(data){
+				uni.navigateBack()
+			})
+			//课件更新（用于当前页直接更新数据）
+			uni.$on('update',function(data){
+				that.init()
+				that.into()
+			})
+			//闯关结束
+			uni.$on('over',function(data){
+				that.$refs.wv.evalJs("over()")
+			})
+		},
+		onHide: function() {
+			if (this.operation.metronome) {
+				this.metronomeSwitch('close')
+			}
+			//初始化
+			this.init()
+			//移除虚拟键盘监听
+			uni.$off('keyOn')
+			uni.$off('keyOff')
+			//移除MIDI数据监听
+			uni.$off('noteOn')
+			uni.$off('noteOff')
+			//移除切换组件监听
+			uni.$off('change')
+			uni.$off('update')
+			try {
+				//隐藏子窗口
+				this.subNVue.hide()
+			} catch(e) {}
+			//清空曲谱
+			this.$refs.wv.evalJs('clearBtn()')
+		},
+		methods: {
+			//vw返回数据
+			message(data){
+				let obj = JSON.parse(data.detail.data[0].action)
+				switch (obj.type){
+					case 'loaded': //曲谱加载完成
+						this.xmlData = obj
+						//监听数据，仅一次（功能暂时隐藏）
+						if (!this.listen) {
+							//监听数据
+							this.$refs.wv.evalJs("listenBtn();")
+							this.listen = true
+						}
+						//获取移调信息
+						this.readMusixInfo()
+						//隐藏正在加载提示
+						let that = this
+						setTimeout(function(){
+							//隐藏加载
+							uni.hideLoading()
+							//自动开始
+							that.beginBtn()
+						},2000);
+						break;
+					case 'move':
+						
+						let timestamp = obj.data.timestamp
+						let note = obj.data.data
+						let midi = this.xmlData.midi
+						let k = 0
+						let t = 2000
+						//用户移动了光标位置
+						if (!this.operation.follow) {
+							for (let key in midi) {
+								let time = Math.round(midi[key][0].start*1000)
+								let arr = []
+								if (timestamp - time > 1300) { //太小跳过
+									continue
+								} else if (time - timestamp > 1300) { //超出结束
+									break;
+								} else {
+									//计算位置，找出时间误差最小的值，如果值在note中找不到，直接跳过
+									for (let i = 0; i < midi[key].length; i++) {
+										if (midi[key][i].pitch != 0) {
+											arr.push(midi[key][i].pitch)
+										}
+									}
+									//进行比较
+									if (JSON.stringify(note.sort()) === JSON.stringify(arr.sort())) {
+										//如果有更小的值，保存
+										if (t > Math.abs(time - timestamp)) {
+											t = Math.abs(time - timestamp)
+											k = key
+										} else {
+											break;
+										}
+									}
+								}
+							}
+						}
+			
+						this.index = this.practise = Number(k)
+						//根据左右手情况，获取当前的音符
+						this.getCurMidi(this.index)
+						//判断是否有休止符
+						this.jump()
+						// if (Math.round(this.xmlData.midi[key][0].start*1000) == obj.data) {
+						// 	this.index = this.practise = Number(key)
+						// 	//根据左右手情况，获取当前的音符
+						// 	this.getCurMidi(this.index)
+						// 	console.log(this.curMidi)
+						// 	//判断是否有休止符
+						// 	this.jump()
+						// 	break
+						// }
+						break;
+					case 'playend': //跟弹结束
+						uni.showLoading('正在打分...')
+						this.showScore()
+						break;
+					case 'playnote': //播放音符
+						if (this.operation.followVoice) {
+							//按下
+							midiModule.sendMidiNoteOn({
+								cable: 0,
+								channel: 0, //暂时定0为右手 1为左手
+								note: obj.data.key,
+								velocity: 100
+							}, (ret) => {})
+						}
+						break;
+					case 'key': //跟弹键值
+						return;
+						//全部标红
+						this.$refs.wv.evalJs("markBtn(0)")
+						this.key = []
+						this.followCurMidi = obj.data.note
+						this.curMidi = obj.data.data
+						if (!this.color) {
+							this.color = true
+						}
+						break;
+					case 'rendered': //去色加载完
+						uni.hideLoading()
+						break;
+					case 'start': //开始
+						this.beginBtn()
+						break;
+					case 'reset': //重置
+						this.reset(obj.data)
+						this.beginBtn()
+						break;
+					case 'param': //参数设置：跟弹&卡住，左右手，调式，键盘
+						let load = false
+						//如果以下值有改变，数据需要重置
+						if (this.operation.follow != obj.data.follow || this.operation.hands != obj.data.hands || this.transpose.curFifths != obj.data.curFifths) {
+							load = true
+						}
+						//如果调式变化
+						if (this.transpose.curFifths != obj.data.curFifths) {
+							this.$refs.wv.evalJs("operationBtn('hide',0,0)")
+							this.transpose.curFifths = obj.data.curFifths
+							this.$store.state.path = this.transpose.xmllist[obj.data.index]
+							this.$refs.wv.evalJs('paramBtn('+JSON.stringify(this.transpose.xmllist[obj.data.index])+')')
+						}
+						this.operation.follow = obj.data.follow
+						this.operation.metronome = obj.data.metronome
+						this.operation.hands = obj.data.hands
+						this.operation.keyTips = obj.data.keyTips
+						this.operation.keyboard = this.operation.keyTips == 'open' ? true : false
+						if (load) {
+							//重置
+							this.reset('loading')
+							//自动开始
+							this.beginBtn()
+						} else {
+							if (this.operation.metronome) {
+								this.metronomeSwitch('open')
+							} else {
+								this.metronomeSwitch('close')
+							}
+						}
+						break;
+					case 'toast': //提示窗
+						uni.showToast({
+							title:obj.data,
+							icon:'none'
+						})
+						break;
+					case 'loading': //加载窗
+						this.showLoading(obj.data)
+						break;
+					case 'colorIndex': //背景色
+						this.colorIndex = uni.getStorageSync('colorIndex') ? uni.getStorageSync('colorIndex') : 0
+						this.$refs.wv.evalJs("bgBtn("+this.colorIndex+",'passive')")
+						break;
+					case 'setColor':
+						this.colorIndex = obj.data
+						//背景颜色缓存
+						uni.setStorageSync('colorIndex',obj.data)
+						break;
+					case 'metronomeVolume': //节拍器音量
+						this.operation.metronomeVolume = obj.data
+						if (this.$store.state.midiDevice) {
+							app.midiDevices('msg',MIDIhead+Metronomevolume(this.operation.metronomeVolume))
+						} else {
+							metronomeWv.evalJS("volume("+this.operation.metronomeVolume+");")
+						}
+						break;
+					case 'next': //闯关，下一关
+						uni.$emit('next')
+						break;
+					case 'back':
+						this.goback()
+						break;
+					default:
+						break;
+				}
+				this.$refs.wv.evalJs("followCursor()")
+			},
+			//开始按钮
+			beginBtn(){
+				let tempo = this.xmlData.tempo
+				if (this.xmlParam.tempo) {
+					tempo = this.xmlParam.tempo
+				}
+				//显示操作按钮
+				this.$refs.wv.evalJs("operationBtn('show',"+JSON.stringify(tempo)+","+JSON.stringify(this.xmlData.signature)+")")
+				//vw按钮状态
+				this.$refs.wv.evalJs("startBtn('start','none',0)")
+				//接收MIDI
+				app.midiDevices('resume')
+				//开始按钮状态
+				this.operation.begin = false
+				//开始计时
+				this.score.timer = setInterval(() => {
+					this.score.playTime = this.score.playTime+1
+				}, 1000);
+				if (this.operation.follow) { //跟弹
+					this.operation.followPlay = true
+					//设置曲谱速度
+					// wv.evalJS("setTempo(30);")
+					this.$refs.wv.evalJs("setTempo("+this.xmlData.tempo+");")
+					//设置节拍器声音
+					if (this.operation.metronome) {
+						this.$refs.wv.evalJs("setMetronome(100);")
+					}
+					//开始
+					this.$refs.wv.evalJs("followPlay();")
+				} else { //卡住
+					if (this.operation.hands == 0) {
+						this.curMidi = this.xmlData.midi[this.index]
+					} else {
+						this.curMidi = []
+						for (let value in this.xmlData.midi[this.index]) {
+							if (this.operation.hands == 1 && this.xmlData.midi[this.index][value] && this.xmlData.midi[this.index][value].hand == 1) {
+								this.curMidi.push(this.xmlData.midi[this.index][value])
+							} else if (this.operation.hands == 2 && this.xmlData.midi[this.index][value] && this.xmlData.midi[this.index][value].hand == 2) {
+								this.curMidi.push(this.xmlData.midi[this.index][value])
+							}
+						}
+					}
+					this.jump()
+					if (this.operation.metronome) {
+						this.metronomeSwitch('open')
+					} else {
+						this.metronomeSwitch('close')
+					}
+				}
+			},
+			//光标下一步(跟弹不会走这步)
+			nextStep(){
+				//卡住模式全部标正确
+				this.$refs.wv.evalJs("markBtn(1);")
+				if (!this.color) {
+					this.color = true
+				}
+				try {
+					//判断当前是否是连音符，如果是连音符，再判断另外一只手是符有要弹的音符，如果没有则继续往前走一步（当前仅处理连音符两步的情况）
+					let curNote = this.xmlData.midi[this.index]
+					//是否有连音符
+					let link = false
+					let endtime = 0
+					for (let val in curNote) {
+						//如果是连音符(有都是连音符的情况，需要判断最后值的大小，取最小的长度的连音符作判断)
+						if (curNote[val].link == 1) {
+							if (endtime == 0) {
+								endtime = curNote[val].end
+								link = true
+							} else if (endtime > curNote[val].end) {//如果有更小的结束时间
+								endtime = curNote[val].end
+								link = true
+							}
+						} else {
+							if (endtime == 0) {
+								endtime = curNote[val].end
+								link = false
+							} else if (endtime > curNote[val].end) { //如果一起的有不是连音符，且时间小于连音符结束时间
+								endtime = curNote[val].end
+								link = false
+							}
+						}
+					}
+					//往下走一步
+					this.$refs.wv.evalJs("nextStep();")
+					//获取下一步的索引
+					this.index = this.index + 1
+					//下一步的MIDI值
+					let curMidi = this.xmlData.midi[this.index]
+					if (!curMidi) {//如果没有值
+						if (this.practise) {//但有点击光标，则进行循环练习
+							this.$refs.wv.evalJs("reset();")
+							this.index = this.practise
+							this.getCurMidi(this.index)
+						} else {//否则表示结束了，显示成绩
+							this.showScore()
+						}
+						return
+					}
+					this.getCurMidi(this.index)
+					//查看当前所在位置，是否为休止符，如果有则继续往下走
+					let jump = true
+					let starttime = 999999999999999
+					for (let k in curMidi) {
+						//如果有值不等于0，则停止跳
+						if (curMidi[k].pitch != 0) {
+							jump = false
+						}
+						if (curMidi[k].start < starttime) {
+							starttime = curMidi[k].start
+						}
+					}
+					//休止符
+					if (jump) {
+						if (this.operation.hands == 0) {
+							this.nextStep()
+						}
+					}
+					//连音符
+					if (link) {
+						//当前(下一步索引后)，是符有要弹的音符，如果没有，再跳一步（通过判断下一个音符的开始时间，是否大于连音符的结束时间，如果大于等于，则跳一步，小于，则不跳
+						if (endtime <= starttime) {
+							this.$refs.wv.evalJs("markBtn(1);")
+							this.$refs.wv.evalJs("nextStep();")
+						}
+					}
+				} catch(e) {
+					console.log('error')
+				}
+				// try{
+				// 	//判断当前是否是连音符，如果是连音符，再判断另外一只手是符有要弹的音符，如果没有则继续往前走一步（当前仅处理连音符两步的情况）
+				// 	let curNote = this.xmlData.midi[this.index]
+				// 	//是否有连音符
+				// 	let link = false
+				// 	let endtime = 0
+				// 	for (let val in curNote) {
+				// 		//如果是连音符(有都是连音符的情况，需要判断最后值的大小，取最小的长度的连音符作判断)
+				// 		if (curNote[val].link == 1) {
+				// 			if (endtime == 0) {
+				// 				endtime = curNote[val].end
+				// 				link = true
+				// 			} else if (endtime > curNote[val].end) {//如果有更小的结束时间
+				// 				endtime = curNote[val].end
+				// 				link = true
+				// 			}
+				// 		} else {
+				// 			if (endtime == 0) {
+				// 				endtime = curNote[val].end
+				// 				link = false
+				// 			} else if (endtime > curNote[val].end) { //如果一起的有不是连音符，且时间小于连音符结束时间
+				// 				endtime = curNote[val].end
+				// 				link = false
+				// 			}
+				// 		}
+				// 	}
+				// 	//如果是卡住模式，则往下走，跟弹不需要管光标移动
+				// 	if (!this.operation.follow) {
+				// 		wv.evalJS("nextStep();")
+				// 	}
+				// 	//获取下一步的索引
+				// 	this.index = this.index + 1
+				// 	//下一步的MIDI值
+				// 	let curMidi = this.curMidi = this.xmlData.midi[this.index]
+				// 	//如果没有值，表示结束了，显示弹奏分数
+				// 	if (!curMidi) {
+				// 		if (this.practise) {
+				// 			wv.evalJS("reset();")
+				// 			this.index = this.practise
+				// 			curMidi = this.xmlData.midi[this.practise]
+				// 			if (this.operation.hands == 0) {
+				// 				this.curMidi = curMidi
+				// 			} else {
+				// 				this.curMidi = []
+				// 				for (let value in curMidi) {
+				// 					if (this.operation.hands == 1 && curMidi[value] && curMidi[value].pitch != 0 && curMidi[value].hand == 1) {
+				// 						this.curMidi.push(curMidi[value])
+				// 					} else if (this.operation.hands == 2 && curMidi[value] && curMidi[value].pitch != 0 && curMidi[value].hand == 2) {
+				// 						this.curMidi.push(curMidi[value])
+				// 					}
+				// 				}
+				// 				this.jump()
+				// 			}
+				// 		} else {
+				// 			//显示成绩
+				// 			this.showScore()
+				// 		}
+				// 		return
+				// 	}
+				// 	if (this.operation.hands == 0) {
+				// 		this.curMidi = curMidi
+				// 	} else {
+				// 		this.curMidi = []
+				// 		for (let value in curMidi) {
+				// 			if (this.operation.hands == 1 && curMidi[value] && curMidi[value].pitch != 0 && curMidi[value].hand == 1) {
+				// 				this.curMidi.push(curMidi[value])
+				// 			} else if (this.operation.hands == 2 && curMidi[value] && curMidi[value].pitch != 0 && curMidi[value].hand == 2) {
+				// 				this.curMidi.push(curMidi[value])
+				// 			}
+				// 		}
+				// 		//没有要弹的音符
+				// 		if (!this.curMidi.length) {
+				// 			if (!this.operation.follow) {
+				// 				this.nextStep()
+				// 			}
+				// 		}
+				// 	}
+				// 	//查看当前所在位置，是否为休止符，如果有则继续往下走
+				// 	let jump = true
+				// 	let starttime = 999999999999999
+				// 	for (let k in curMidi) {
+				// 		//如果有值不等于0，则停止跳
+				// 		if (curMidi[k].pitch != 0) {
+				// 			jump = false
+				// 		}
+				// 		if (curMidi[k].start < starttime) {
+				// 			starttime = curMidi[k].start
+				// 		}
+				// 	}
+				// 	//休止符
+				// 	if (jump) {
+				// 		if (this.operation.hands == 0) {
+				// 			if (!this.operation.follow) {
+				// 				this.nextStep()
+				// 			}
+				// 		}
+				// 	}
+				// 	//连音符
+				// 	if (link) {
+				// 		//当前(下一步索引后)，是符有要弹的音符，如果没有，再跳一步（通过判断下一个音符的开始时间，是否大于连音符的结束时间，如果大于等于，则跳一步，小于，则不跳
+				// 		if (endtime <= starttime) {
+				// 			if (!this.operation.follow) {
+				// 				wv.evalJS("nextStep();")
+				// 			}
+				// 		}
+				// 	}
+				// }catch(e){
+				// 	console.log('error')
+				// }
+			},
+			//休止符
+			jump(){
+				//开始状态下才往下走
+				if (!this.operation.begin) {
+					//没有要弹的音符
+					if (!this.curMidi.length) {
+						this.nextStep()
+					} else {
+						let jump = true
+						for (let k in this.curMidi) {
+							//如果有值不等于0，则停止跳
+							if (this.curMidi[k].pitch != 0) {
+								jump = false
+							}
+						}
+						if (jump) {
+							this.nextStep()
+						}
+					}
+				}
+			},
+			//当前的音符midi
+			getCurMidi(index){
+				//判断左右手
+				if (this.operation.hands == 0) {
+					this.curMidi = this.xmlData.midi[this.index]
+				} else {
+					this.curMidi = []
+					for (let value in this.xmlData.midi[this.index]) {
+						if (this.operation.hands == 1 && this.xmlData.midi[this.index][value] && this.xmlData.midi[this.index][value].hand == 1) {
+							this.curMidi.push(this.xmlData.midi[this.index][value])
+						} else if (this.operation.hands == 2 && this.xmlData.midi[this.index][value] && this.xmlData.midi[this.index][value].hand == 2) {
+							this.curMidi.push(this.xmlData.midi[this.index][value])
+						}
+					}
+					this.jump()
+				}
+			},
+			//曲谱信息（调式，可移调式）
+			readMusixInfo(){
+				if (this.xmlInfo.id) {
+					var that = this
+					request({
+						url: "/piano/xml/readMusixInfo.html",
+						data:{path:this.xmlInfo.path,id:this.xmlInfo.id},
+						method: "POST",
+					}).then((res)=>{
+						if (res.data.code == 1000) {
+							this.transpose.defaultFifths = res.data.data.fifthsStr
+							this.transpose.curFifths = res.data.data.fifthsStr
+							this.transpose.scaleAll = res.data.data.scaleAll
+							this.transpose.xmllist = res.data.data.xmllist
+							this.transpose.support = true
+						} else {
+							this.transpose.support = false
+						}
+						this.$refs.wv.evalJs("transposeData("+JSON.stringify(this.transpose)+");")
+					})
+				} else {
+					this.transpose.support = false
+					this.$refs.wv.evalJs("transposeData("+JSON.stringify(this.transpose)+");")
+				}
+			},
+			//加载中
+			showLoading(text,time){
+				uni.showLoading({
+					title:text ? text : '加载中...',
+				})
+				setTimeout(() => {
+					uni.hideLoading()
+				}, time ? time : 1000)
+			},
+			//分数面板
+			showScore() {
+				//计算用时
+				let ii = Math.floor(this.score.playTime / 60)
+				let ss = this.score.playTime % 60
+				let time = (ii < 10 ? '0'+ii : ii)+'分'+(ss < 10 ? '0'+ss : ss)+'秒'
+				//总音符数量
+				let totalNote = this.xmlData.noteTotal
+				if (this.operation.hands == 1) {
+					totalNote = this.xmlData.leftTotal
+				} else if (this.operation.hands == 2) {
+					totalNote = this.xmlData.rightTotal
+				}
+				let accuracy = 0 //计算准确率(总音符/弹奏音符*100)
+				let error = 0 //错误音符
+				let score = 0 //得分
+				let integral = 0 //积分(暂时无)
+				if (this.operation.follow) { //跟弹
+					let playNote = this.xmlData.noteTotal
+					//如果弹的数量少于总数，则使用总数
+					if (this.score.playNote > this.xmlData.totalNote) {
+						playNote = this.score.playNote
+					}
+					accuracy = Number(parseFloat(this.score.playRight / playNote).toFixed(2)*100)
+					error = playNote - this.score.playRight
+					score = accuracy
+				} else { //卡住
+					if (this.score.playNote) {
+						accuracy = Number(parseFloat(totalNote / this.score.playNote).toFixed(2)*100)
+						error = this.score.playNote - totalNote
+						if (this.xmlData.standardTime > this.score.playTime) {
+							score = Math.floor(accuracy*0.5 + 50)
+						} else {
+							score = Math.floor(accuracy*0.5 + (this.xmlData.standardTime / this.score.playTime)*50)
+						}
+					} else {
+						score = 100
+					}
+				}
+				//提示语
+				let tips = this.score.tips[0]
+				//判断时长倍数
+				let multiple = parseFloat(this.score.playTime / this.xmlData.standardTime).toFixed(1)
+				if (accuracy > 60 && accuracy < 90) {
+					tips = this.score.tips[1]
+				} else if (accuracy >= 90){
+					if (multiple >= 3) {
+						tips = this.score.tips[2]
+					} else if (multiple > 3 && multiple < 1.5) {
+						tips = this.score.tips[3]
+					} else {
+						tips = this.score.tips[4]
+					}
+				}
+				//打败用户
+				let fighting = 0
+				let that = this
+				//如果是闯关并且参数一致(跟弹&卡住先忽略)
+				if (this.xmlInfo.ptype == 2 && this.xmlParam.metronome == this.operation.metronome && this.xmlParam.hands == this.operation.hands && this.xmlParam.keytips == this.operation.keyTips) {
+					request({
+						url: '/piano/breakthrough/submission.html',
+						data:{
+							p_id:this.xmlInfo.pid,
+							score:score,
+							type:2,
+							cw_id:this.xmlInfo.cwid,
+							c_id:this.xmlInfo.cid
+						},
+						method: 'POST'
+					}).then((res) => {
+						let e = {
+							fighting:res.data.other,
+							score:score,
+							time:time,
+							tips:tips,
+							error:error,
+							accuracy:accuracy
+						}
+						if (res.data.code == 1000) {
+							this.$refs.wv.evalJs("score("+JSON.stringify(e)+",'success');")
+						} else if (res.data.code == 1001) {
+							this.$refs.wv.evalJs("score("+JSON.stringify(e)+",'fail');")
+						}
+						//解锁下一个课件的ID
+						uni.$emit('unlocked',res.data.data)
+						//隐藏加载
+						uni.hideLoading()
+						setTimeout(function(){
+							//重置
+							that.reset('none')
+						},500);
+					})
+				} else {
+					request({
+						url: '/piano/index/fighting.html',
+						data:{
+							score:score,
+							time:this.score.playTime,
+							note:this.xmlData.noteTotal,
+							right:this.xmlData.noteTotal,
+							title:this.xmlInfo.title,
+							error:error,
+							m_id:this.xmlInfo.id?this.xmlInfo.id:0,
+							cwid:this.xmlInfo.cwid?this.xmlInfo.cwid:0,
+							type:this.follow ? 1 : 0
+						},
+						method: 'POST'
+					}).then((res) => {
+						if (res.data.code == 1000) {
+							let e = {
+								fighting:res.data.data,
+								score:score,
+								time:time,
+								tips:tips,
+								error:error,
+								accuracy:accuracy
+							}
+							this.$refs.wv.evalJs("score("+JSON.stringify(e)+",'score');")
+							uni.hideLoading()
+						}
+						setTimeout(function(){
+							//重置
+							that.reset('none')
+						},500);
+					});
+				}
+			},
+			//按下midi按钮
+			async noteOn(note,velocity,hand){
+				if (this.followVoice) {
+					if (this.hand == 0) {
+						midiModule.sendMidiNoteOn({
+							cable: 0,
+							channel: 0,
+							note: note,
+							velocity: velocity
+						}, (ret) => {
+							this.keyDonw(note)
+						})
+					} else if (this.hand == hand){
+						midiModule.sendMidiNoteOn({
+							cable: 0,
+							channel: 0,
+							note: note,
+							velocity: velocity
+						}, (ret) => {
+							this.keyDonw(note)
+						})
+					}
+				} else {
+					if (this.hands == 0) {
+						this.keyDonw(note)
+					} else if (this.hands == hand) {
+						this.keyDonw(note)
+					}
+				}
+			},
+			//松开midi按钮
+			async noteOff(note){
+				//参考收到的消息
+				midiModule.sendMidiNoteOff({
+					cable: 0,
+					channel: 0,
+					note: note,
+					velocity: 0
+				}, (ret) => {
+					this.keyUp(note)
+				})
+			},
+			//播放MIDI文件
+			sendMidiFile() {
+				// plus.io.convertLocalFileSystemURL
+				// midiModule.sendMidiFile({
+				// 	filePath: '/storage/emulated/0/Android/data/uni.UNIC8C25C3/apps/__UNI__C8C25C3/doc/uniapp_save/16630598456460.mid'
+				// 	// filePath: file
+				// }, (ret) => {
+				// 	//连接时报错或者连接成功后的回调在这里
+				// })
+				
+				// return;
+				// let that = this
+				uni.downloadFile({
+					url:'https://edusystem.thedream.tech/edusystem/upload/49_54/20220906/ff3296799f4bbd7ce10ada0e689d7325.mid',
+					success:function(res){
+						midiModule.sendMidiFile({
+							filePath: plus.io.convertLocalFileSystemURL(res.tempFilePath)
+							// filePath: file
+						}, (ret) => {
+							//连接时报错或者连接成功后的回调在这里
+						})
+					}
+				})
+			},
+			//收到琴键按下
+			keyDonw(value){
+				//每按一次，记录一次
+				this.score.playNote += 1
+				//跟弹纠错
+				if (this.operation.follow) {
+					if (this.followCurMidi.indexOf(value) == -1) {
+						//放入弹错音符中
+						this.errMidi.push(value.toString())
+						this.errMidi = Array.from(this.errMidi)
+					} else {
+						this.score.playRight += 1
+						//标绿
+						this.$refs.wv.evalJs("correction("+value+","+1+")")
+					}
+					return
+				}
+				//当前弹奏位置
+				let i = this.index
+				//是否已经存在值
+				if (this.key.indexOf(value.toString()) == -1) {
+					// let key = this.key
+					// key.push(value.toString())
+					// this.key = key
+					this.key.push(value.toString())
+				}
+				if (this.errMidi.indexOf(value.toString()) == -1) {
+					// let key = this.key
+					// key.push(value.toString())
+					// this.key = key
+					// this.key.push(value.toString())
+					this.errMidi.push(value.toString())
+				}
+				// this.errMidi.push(value.toString())
+				// this.errMidi = Array.from(this.errMidi)
+				//midi总长度
+				let count = this.xmlData.midi.length
+				//首先判断一次，midi是否为空
+				if (!count) {
+					return
+				}
+				//再判断i是否大于midi长度
+				if (count - 1 < i) {
+					this.curMidi = []
+					return
+				}
+				//获取midi中的第i组值，并在this.key中查询，是否有值，即代表是否按下，如果i组中的值都能key中能找到，则触发下一步
+				let midi = this.xmlData.midi[this.index]
+				for (let val in midi) {
+					if (midi[val].pitch == 0) {
+						continue
+					}
+					if (this.operation.hands == 0) {
+						//如果有找不到的值，说明有键没按下
+						if (this.key.indexOf(midi[val].pitch.toString()) == -1) {
+							if (this.operation.keyTips == 'auto') {
+								//累计弹错次数
+								let errNumb = this.playError
+								this.playError = Number(errNumb) + 1
+								//如果弹错五次，弹窗键盘提示，并将错误次数重置
+								if (this.playError >= 5 ) {
+									this.operation.keyboard = true
+								}
+							}
+							return
+						}
+					} else if (this.operation.hands == 1) {
+						if (midi[val].hand == 1) {
+							//如果有找不到的值，说明有键没按下
+							if (this.key.indexOf(midi[val].pitch.toString()) == -1) {
+								if (this.operation.keyTips == 'auto') {
+									//累计弹错次数
+									let errNumb = this.playError
+									this.playError = Number(errNumb) + 1
+									//如果弹错五次，弹窗键盘提示，并将错误次数重置
+									if (this.playError >= 5 ) {
+										this.keyboard = true
+									}
+								}
+								return
+							}
+						} else {
+							continue
+						}
+					} else if (this.operation.hands == 2) {
+						if (midi[val].hand == 2) {
+							//如果有找不到的值，说明有键没按下
+							if (this.key.indexOf(midi[val].pitch.toString()) == -1) {
+								if (this.operation.keyTips == 'auto') {
+									//累计弹错次数
+									let errNumb = this.playError
+									this.playError = Number(errNumb) + 1
+									//如果弹错五次，弹窗键盘提示，并将错误次数重置
+									if (this.playError >= 5 ) {
+										this.operation.keyboard = true
+									}
+								}
+								return
+							}
+						} else {
+							continue
+						}
+					}
+				}
+				//每往下走一步，清空一次当前保存的按键信息，以免出现之前按下的键未松开，导致误判，之前放在nextStep后
+				this.key = []
+				this.errMidi = []
+				//判断，如果是系统打开键盘，弹对以后，自动关闭
+				if (this.operation.keyTips == 'auto') {
+					//如果弹对，将错误次数重置
+					this.playError = 0
+					this.operation.keyboard = false
+				}
+				//触发光标往下跳
+				this.nextStep()
+			},
+			//收到琴键松开
+			keyUp(value){
+				//如果有键值
+				if (this.key.length > 0) {
+					//过滤掉值为value的元素
+					let setArr = new Set(this.key)
+					let result = setArr.delete(value.toString())
+					this.key = Array.from((setArr))
+				}
+				//错误按键
+				if (this.errMidi.length > 0) {
+					//过滤掉值为value的元素
+					let setArrErr = new Set(this.errMidi)
+					let resultErr = setArrErr.delete(value.toString())
+					this.errMidi = Array.from(setArrErr)
+				}
+			},
+			//虚拟按键
+			keyStatus(note,type) {
+				if (type == 'on') {
+					//参考收到的消息
+					midiModule.sendMidiNoteOn({
+						cable: 10,
+						channel: 5,
+						note: note,
+						velocity: 100
+					}, (ret) => {
+						this.keyDonw(note)
+					})
+				} else {
+					this.keyUp(note)
+				}
+			},
+			//打开&关闭节拍器
+			metronomeSwitch(type){
+				let tempo = this.xmlData.tempo
+				if (this.xmlParam.tempo) {
+					tempo = this.xmlParam.tempo
+				}
+				app.midiDevices('msg',MIDIhead+Metronomevolume(this.operation.metronomeVolume))
+				if (type == 'open' && !this.operation.metronomePlay) {
+					this.operation.metronomePlay = true
+					if (!this.$store.state.midiDevice) {
+						metronomeWv.evalJS("play("+tempo+","+this.xmlData.signature[0]+","+this.operation.metronomeVolume+");")
+					} else {
+						//设置音量(无效，需要检查)
+						app.midiDevices('msg',MIDIhead+Metronomevolume(this.operation.metronomeVolume))
+						//设置速度
+						app.midiDevices('msg',MIDIhead+Speedset(tempo))
+						//设置节拍
+						app.midiDevices('msg',MIDIhead+Metronomenumset(this.xmlData.signature[0],this.xmlData.signature[1]))
+						//开始
+						app.midiDevices('msg',MIDIhead+Metronomeswitch(1))
+					}
+				} else if (type == 'close' && this.operation.metronomePlay) {
+					this.operation.metronomePlay = false
+					if (!this.$store.state.midiDevice) {
+						metronomeWv.evalJS("play("+tempo+","+this.xmlData.signature[0]+","+this.operation.metronomeVolume+");")
+					} else {
+						app.midiDevices('msg',MIDIhead+Metronomeswitch(0))
+					}
+				}
+			},
+			//关闭跟弹
+			closeFollow(){
+				if (this.operation.followPlay) {
+					this.$refs.wv.evalJs("followPlay();")
+					this.operation.followPlay = false
+				}
+			},
+			//进入
+			into(){
+				uni.showLoading({
+					title: '加载中...'
+				})
+				this.xmlInfo = this.$store.state.xmlInfo
+				this.xmlParam = this.$store.state.xmlParam
+				console.log(this.xmlInfo)
+				console.log(this.xmlParam)
+				//传送曲谱
+				if (this.xmlInfo.path) {
+					this.$refs.wv.evalJs('paramBtn('+JSON.stringify(this.xmlInfo.path)+')')
+				}
+			},
+			//页面数据初始化
+			init(){
+				this.operation = {
+					begin:true, //开始按钮
+					hands:0, //左右手 0表示双手 1表示左手 2表示右手
+					follow:false, //当前模式跟弹&卡住
+					followPlay:false, //跟弹是否开始
+					followVoice:false, //跟弹是否有声音
+					metronome:false, //节拍器按钮
+					metronomeVolume:60, //节拍器音量
+					metronomePlay:false, //节拍器是否开始
+					keyboard:false, //键盘显示状态
+					keyTips:'auto', //键盘提示，默认自动
+				}
+				this.xmlInfo = {
+					ptype:'', //课程类型
+					pid:0, //课程id
+					cid:0, //课时id
+					id:0, //曲谱id
+					cwid:0, //课件id
+					path:'', //曲谱地址
+					title:'', //曲谱标题
+				}
+				this.xmlData = '',
+				this.xmlParam = {
+					pass:80,
+					mode:false,
+					hands:0,
+					metronome:false,
+					tempo:0,
+					keytips:'auto'
+				},
+				this.listen = false, //监听曲谱
+				this.transpose = {
+					defaultFifths:'', //原始调式
+					scaleAll:'', //可选择的移调调式
+					curFifths:'', //当前调式
+					support:'', //是否支持移调功能
+				}
+				this.reset('none')
+			},
+			//重置
+			reset(type){
+				if (this.load) {
+					//光标回到起点
+					// this.$refs.wv.evalJs("measureBtn('0')")
+					// this.$refs.wv.evalJs("measureBtn('0')")
+					//隐藏操作按钮
+					this.$refs.wv.evalJs("operationBtn('hide',0,0)")
+					//重置
+					this.$refs.wv.evalJs("reset()")
+				} else {
+					this.load = true
+				}
+				//修改为开始按钮
+				this.operation.begin = true
+				//去掉标记色
+				if (this.color) {
+					if (type == 'loading') {
+						uni.showLoading({
+							title:'加载中...'
+						})
+					}
+					//去掉标记色
+					this.$refs.wv.evalJs("render()")
+					this.color = false
+				}
+				if (this.operation.metronome) {
+					//关闭节拍器
+					this.metronomeSwitch('close')
+				}
+				//关闭跟弹
+				this.closeFollow()
+				//清定弹奏时间计时器
+				clearInterval(this.score.timer)
+				this.score = {
+					timer:null, //计时器
+					playTime:0, //弹奏用时
+					playNote:0, //按键次数
+					playRight:0, //弹对音符（跟弹）
+					type:'score', //score单曲得分，success闯关成功，fail闯关失败
+					tips:[ //成绩提示
+						'继续加油哦，请先保证准确率，慢慢来不要急。',
+						'您的识谱得到很大提高，速度还需要加油。',
+						'您的识谱准非常棒，速度再提高就完美了。',
+						'你已经非常熟练了，控制节奏速度，就能弹出非常好听的歌曲。',
+						'恭喜您熟练掌握这个曲谱，可以出去表演了',
+					],
+				}
+				//数据还原
+				this.key = [] //当前收到的键值
+				this.index = 0, //当前弹奏位置
+				this.followCurMidi = [] //跟弹要弹的琴键
+				this.curMidi = [] //卡住要弹的琴键
+				this.errMidi = [] //弹错的midi值
+				this.playError = 0 //弹错次数，如果连续弹错三次，自动弹起键盘提示
+				this.practise = 0 //练习模式,如果用户点击了光标，则进入练习模式(不计算成绩，弹完后继续弹)
+				//暂停MIDI
+				app.midiDevices('suspend')
+			},
+			//返回到上一页
+			goback(){
+				//清理课程切换组件状态
+				this.$store.state.course.show = false
+				//返回
+				uni.navigateBack()
+			}
+		}
+	}
+</script>
+
+<style lang="scss">
+	.appbg{
+		flex: 1;
+		background: #fff;
+		position: relative;
+	}
+	.detail{
+		flex: 1;
+		margin-left:20px;
+		margin-top:20px;
+	}
+</style>

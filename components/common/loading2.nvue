@@ -1,0 +1,28 @@
+<template>
+	<div>
+		<view class="content"></view>
+	</div>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+			}
+		},
+		onReady() {
+			uni.showLoading({
+			    title: '加载中...',
+				mask: true
+			});
+		}
+	}
+</script>
+
+<style>
+	.content{
+		width:100%;
+		height:100%;
+		color:#fff;
+	}
+</style>

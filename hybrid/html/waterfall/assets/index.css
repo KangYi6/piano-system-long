@@ -1,0 +1,560 @@
+html,body{
+	width: 100%;
+	height: 100%;
+}
+body{
+	background-color: #000;
+	overflow: hidden;
+}
+body,p{margin:0;padding:0;}
+ul,li{ margin:0px; padding:0px; list-style-type:none;}
+*{touch-action: none;}
+.hide{
+	display: none;
+}
+.show{
+	display: block;
+}
+.fl{
+	float: left;
+}
+.fr{
+	float: right;
+}
+
+.ui-corner-all{
+    border-radius: 6px;
+}
+.ui-widget-content {
+    background: #ffffff;
+}
+.ui-slider-horizontal {
+    height: 12px;
+	margin-top:19px;
+}
+.ui-slider {
+    position: relative;
+    text-align: left;
+	width:calc(100% - 45px);
+	margin-left:7px;
+	float:left;
+}
+/* .ui-slider span{
+	border:none !important;
+	-webkit-tap-highlight-color:rgba(0,0,0,0);
+} */
+.ui-slider span:focus {
+	outline: none;
+}
+/* .ui-state-default,.ui-state-active{
+	border:none;
+} */
+.right .velocity{
+	width: 38px;
+	height: auto;
+	line-height: 50px;
+	text-align: right;
+	display: inline-block;
+}
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
+    background: #018ef3 50% 50% repeat-x;
+    font-weight: normal;
+}
+.ui-slider-horizontal .ui-slider-handle {
+    top: -10px;
+    margin-left: -10px;
+}
+.ui-slider .ui-slider-handle {
+    position: absolute;
+    z-index: 2;
+    width: 20px;
+    height: 20px;
+	border-radius: 50%;
+	top: -4px;
+}
+
+@media screen and (max-width:2565px){
+	.setting{
+		width:60px;
+		height:60px;
+		position: fixed;
+		right:10px;
+		top:20px;
+		z-index: 9999999999999;
+	}
+	.setting img{
+		max-width: 100%;
+	}
+	.operation{
+		width:280px;
+		/* height:380px; */
+		height:450px;
+		position: absolute;
+		right:70px;
+		top:5px;
+		background: #3D3C3C;
+		color:#fff;
+		padding:30px;
+		border-radius: 10px;
+		display: none;
+	}
+	.operation h1{
+		font-size: 24px;
+		margin:0;
+		border-bottom: 2px #656464 solid;
+		padding-bottom:20px;
+		margin-bottom:10px;
+		font-weight: normal;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+	.param{
+		width:100%;
+		height:auto;
+		margin:10px auto 0;
+		overflow: hidden;
+	}
+	.param .info{
+		width: 100%;
+		height:auto;
+		text-align: center;
+	}
+	.param .info em{
+		padding: 5px 16px;
+		background: #7a7a7a1f;
+		border-radius: 20px;
+		text-align: center;
+		font-size:16px;
+		margin:10px auto;
+		font-style: normal;
+		display: inline-block;
+		cursor:pointer;
+	}
+	.param .left{
+		width:50px;
+		height:auto;
+		line-height: 50px;
+		font-size:20px;
+	}
+	.param .right{
+		width:calc(100% - 50px);
+		height:auto;
+	}
+	.param .right p{
+		width:calc(100% - 6px);
+		padding:0 3px;
+		font-size:18px;
+		line-height: 50px;
+		margin:0 auto;
+	}
+	.param i{
+		width:calc(30% - 20px);
+		height:auto;
+		background: #7b7b7b;
+		padding:5px 10px;
+		border-radius: 15px;
+		margin-top: 10px;
+		display: inline-block;
+		text-align: center;
+		font-style: normal;
+		margin-left:3.33%;
+		cursor:pointer;
+	}
+	.curbg{
+		background: #026be4 !important;
+	}
+	.hand{
+		width:50%;
+		height:auto;
+		overflow: hidden;
+		margin-top:3px;
+	}
+	.hand .imgbox{
+		width:100%;
+		height:auto;
+		overflow: hidden;
+	}
+	.hand .imgbox img{
+		max-width:118px;
+		height:auto;
+		float:left;
+	}
+	.hand p{
+		width:100%;
+		height:auto;
+		text-align: center;
+		line-height: 20px !important;
+		font-size:14px !important;
+	}
+	.keyboard-switch img{
+		max-width: 118px;
+		position: relative;
+		top:3px;
+	}
+	.speed{
+		width:calc(100% - 11px);
+		height:auto;
+		border:2px #656464 solid;
+		overflow: hidden;
+		line-height: 50px;
+		text-align: center;
+		margin-top:8px;
+		margin-left:7px;
+		border-radius: 25px;
+	}
+	.speed .minus{
+		width:50px;
+		height:auto;
+		line-height: 30px;
+		border-right:2px #656464 solid;
+		font-size:40px;
+	}
+	.speed .value{
+		width:calc(100% - 104px);
+		height:auto;
+		line-height: 30px;
+	}
+	.speed .percent{
+		display:inline-block;
+	}
+	.speed .symbol{
+		display:inline-block;
+	}
+	.speed .plus{
+		width:50px;
+		height:auto;
+		line-height: 30px;
+		border-left:2px #656464 solid;
+		font-size:34px;
+	}
+	.speed span{
+		position: relative;
+		top:-2px;
+		cursor:pointer;
+	}
+	.speed .plus span{
+		top:0px;
+		cursor:pointer;
+	}
+	.goback{
+		position: fixed;
+		bottom:30px;
+		right:10px;
+		z-index: 99999999999;
+	} 
+	.goback img{
+		width:180px;
+		height:72px;
+	}
+	/*键盘样式*/
+	.keyboard{
+		width:2860px;
+		height:30px;
+		position: fixed;
+		left:-193px;
+		bottom:-0;
+		overflow: hidden;
+	}
+	.key{
+		/* width:calc(1.923% - 1px); */
+		width:56.4px;
+		height:100%;
+		float:left;
+		/* border-left:3px #fff solid; */
+	}
+	.key:first-child{
+		border-left:0;
+	}
+	.key:last-child{
+		border-right:1rpx #000 solid;
+	}
+	.whiteKey {
+		background-color:#fff;
+		width: calc(100% - 3px);
+		height:100%;
+		border-bottom-left-radius:5px;
+		border-bottom-right-radius:5px;
+	}
+	.blackKey {
+		width:30px;
+		height:20px;
+		background-color:#000;
+		position: absolute;
+		top:0;
+		border-bottom-left-radius:5px;
+		border-bottom-right-radius:5px;
+	}
+	/* 88键 每个键平均49.22  黑键半个键是22  所以全键盘每半个黑键的偏移量是27.22 */
+	/* 由于长条屏尺寸，实际显示左右会各少 5个键 左右各少2个黑键，3个白键 经计算后，每个键为53.4 黑键半个键是15 所以实际全键盘每半个黑键的偏移量是33.64 */
+	#key22 .blackKey{left:33.64px;}
+	#key25 .blackKey{left:calc(2*53.4px + 33.64px);}
+	#key27 .blackKey{left:calc(3*53.4px + 50px);}
+	#key30 .blackKey{left:calc(5*53.4px + 46px);}
+	#key32 .blackKey{left:calc(6*53.4px + 55px);}
+	#key34 .blackKey{left:calc(7*53.4px + 64px);}
+	#key37 .blackKey{left:calc(9*53.4px + 60px);}
+	#key39 .blackKey{left:calc(10*53.4px + 71px);}
+	#key42 .blackKey{left:calc(12*53.4px + 64px);}
+	#key44 .blackKey{left:calc(13*53.4px + 76px);}
+	#key46 .blackKey{left:calc(14*53.4px + 86px);}
+	#key49 .blackKey{left:calc(16*53.4px + 90px);}
+	#key51 .blackKey{left:calc(17*53.4px + 90px);}
+	#key54 .blackKey{left:calc(19*53.4px + 88px);}
+	#key56 .blackKey{left:calc(20*53.4px + 96px);}
+	#key58 .blackKey{left:calc(21*53.4px + 106px);}
+	#key61 .blackKey{left:calc(23*53.4px + 102px);}
+	#key63 .blackKey{left:calc(24*53.4px + 112px);}
+	#key66 .blackKey{left:calc(26*53.4px + 106px);}
+	#key68 .blackKey{left:calc(27*53.4px + 114px);}
+	#key70 .blackKey{left:calc(28*53.4px + 127px);}
+	#key73 .blackKey{left:calc(30*53.4px + 118px);}
+	#key75 .blackKey{left:calc(31*53.4px + 134px);}
+	#key78 .blackKey{left:calc(33*53.4px + 130px);}
+	#key80 .blackKey{left:calc(34*53.4px + 138px);}
+	#key82 .blackKey{left:calc(35*53.4px + 148px);}
+	#key85 .blackKey{left:calc(37*53.4px + 141px);}
+	#key87 .blackKey{left:calc(38*53.4px + 154px);}
+	#key90 .blackKey{left:calc(40*53.4px + 150px);}
+	#key92 .blackKey{left:calc(41*53.4px + 160px);}
+	#key94 .blackKey{left:calc(42*53.4px + 170px);}
+	#key97 .blackKey{left:calc(44*53.4px + 165px);}
+	#key99 .blackKey{left:calc(45*53.4px + 175px);}
+	#key102 .blackKey{left:calc(47*53.4px + 170px);}
+	#key104 .blackKey{left:calc(48*53.4px + 185px);}
+	#key106 .blackKey{left:calc(49*53.4px + 140px);}
+	.cur{
+		background-color: #98ef96;
+	}
+	.current{
+		background-color: #98ef96;
+		border-left:3px #98ef96 solid;
+	}
+	.err{
+		background-color: #f00 !important;
+	}
+	.blackbg{
+		width:100%;
+		height:100%;
+		background: rgba(0,0,0,0.3);
+		position: fixed;
+		left:0;
+		top:0;
+		z-index: 999999;
+		display: none;
+	}
+	.finish{
+		width:540px;
+		height:auto;
+		position: fixed;
+		left:calc(50% - 250px);
+		top:calc(50% - 150px);
+		text-align: center;
+		padding:10px;
+		z-index: 999;
+		background-image: linear-gradient(to right, #044BD6 , #009FFA);
+		border-radius: 10px;
+	}
+	.finish i{
+		font-style: normal;
+		}
+	.close{
+		width:32px;
+		height:auto;
+		position: absolute;
+		bottom: -45px;
+		left: calc(50% - 16px);
+	}
+	.close img{
+		max-width:32px;
+	}
+	.cot{
+		width:calc(100% - 10px);
+		height:calc(100% - 10px);
+		border:5px #F0F0F0 solid;
+	}
+	.head{
+		width:200px;
+		height:auto;
+		margin:0 auto;
+	}
+	.head img{
+		max-width:100%;
+	}
+	.box{
+		width:calc(100% - 40px);
+		height:auto;
+		margin:30px 20px;
+	}
+	.box .left{
+		width:40%;
+		height:auto;
+	}
+	.scorebox{
+		width:100%;
+		height:auto;
+		margin:10px auto;
+		overflow: hidden;
+	}
+	.box .score{
+		height:auto;
+		font-size:20px;
+		color:#fff;
+		text-align: center;
+	}
+	.box .score span{
+		font-size:60px;
+		display: inline-block;
+	}
+	.box .left p{
+		width:80%;
+		height:auto;
+		background: #fff;
+		font-size:12px;
+		text-align: center;
+		color:#0365E1;
+		line-height: 20px;
+		border-radius: 10px;
+		margin:0 auto;
+	}
+	.box .rightbox{
+		width:60%;
+		overflow: hidden;
+		margin-top:20px;
+		text-align: center;
+	}
+	.box .rightbox li{
+		width:calc(33.33% - 1px);
+		height:auto;
+		float:left;
+		color:#fff;
+		font-size:14px;
+		border-left:1px #ffffff2e solid;
+	}
+	.box em{
+		font-size:26px;
+		font-style: normal;
+	}
+	.tips{
+		width:calc(100% - 20px);
+		height:auto;
+		font-size:16px;
+		color:#fff;
+		line-height: 24px;
+		margin:25px 10px;
+	}
+	.operabtn{
+		width:90%;
+		height:auto;
+		overflow: hidden;
+		margin:0 auto;
+	}
+	.noplay{
+		width:calc(48% - 2px);
+		height:40px;
+		float:left;
+		background: #fff;
+		border-radius:20px;
+		margin-right:4%;
+		line-height: 40px;
+		text-align: center;
+		border:1px #fff solid;
+		color:#0365E1;
+		font-size:16px;
+		cursor: pointer;
+	}
+	.again{
+		width:calc(48% - 2px);
+		height:40px;
+		line-height: 40px;
+		text-align: center;
+		background: linear-gradient(to right,#0449D5, #00A1FB);
+		font-size:16px;
+		border:1px #fff solid;
+		color:#fff;
+		border-radius:20px;
+		float:left;
+		cursor: pointer;
+	}
+}
+@media screen and (max-width:1925px){
+	/* 键盘 */
+	.keyboard{
+		width:100%;
+		height:30px;
+		position: absolute;
+		left:0;
+		bottom:0;
+	}
+	.key{
+		width:calc(100% / 52);
+		border-top-left-radius:0;
+		border-top-right-radius:0;
+		border-bottom-left-radius:4px;
+		border-bottom-right-radius:4px;
+	}
+	.whiteKey {
+		background-color:#fff;
+		width: calc(100% - 1px);
+		height:100%;
+		border-top-left-radius:0;
+		border-top-right-radius:0;
+		border-bottom-left-radius:4px;
+		border-bottom-right-radius:4px;
+		margin-right:1px;
+	}
+	.blackKey {
+		width:calc(1.2% - 1px);
+		height:20px;
+		border-top-left-radius:0;
+		border-top-right-radius:0;
+		border-bottom-left-radius:4px;
+		border-bottom-right-radius:4px;
+		top:0;
+	}
+	#key22 .blackKey{left:calc(100% / 52 - 0.6%);}
+	#key25 .blackKey{left:calc(3*(100% / 52) - 0.6%);}
+	#key27 .blackKey{left:calc(4*(100% / 52) - 0.6%);}
+	#key30 .blackKey{left:calc(6*(100% / 52) - 0.6%);}
+	#key32 .blackKey{left:calc(7*(100% / 52) - 0.6%);}
+	#key34 .blackKey{left:calc(8*(100% / 52) - 0.6%);}
+	#key37 .blackKey{left:calc(10*(100% / 52) - 0.6%);}
+	#key39 .blackKey{left:calc(11*(100% / 52) - 0.6%);}
+	#key42 .blackKey{left:calc(13*(100% / 52) - 0.6%);}
+	#key44 .blackKey{left:calc(14*(100% / 52) - 0.6%);}
+	#key46 .blackKey{left:calc(15*(100% / 52) - 0.6%);}
+	#key49 .blackKey{left:calc(17*(100% / 52) - 0.6%);}
+	#key51 .blackKey{left:calc(18*(100% / 52) - 0.6%);}
+	#key54 .blackKey{left:calc(20*(100% / 52) - 0.6%);}
+	#key56 .blackKey{left:calc(21*(100% / 52) - 0.6%);}
+	#key58 .blackKey{left:calc(22*(100% / 52) - 0.6%);}
+	#key61 .blackKey{left:calc(24*(100% / 52) - 0.6%);}
+	#key63 .blackKey{left:calc(25*(100% / 52) - 0.6%);}
+	#key66 .blackKey{left:calc(27*(100% / 52) - 0.6%);}
+	#key68 .blackKey{left:calc(28*(100% / 52) - 0.6%);}
+	#key70 .blackKey{left:calc(29*(100% / 52) - 0.6%);}
+	#key73 .blackKey{left:calc(31*(100% / 52) - 0.6%);}
+	#key75 .blackKey{left:calc(32*(100% / 52) - 0.6%);}
+	#key78 .blackKey{left:calc(34*(100% / 52) - 0.6%);}
+	#key80 .blackKey{left:calc(35*(100% / 52) - 0.6%);}
+	#key82 .blackKey{left:calc(36*(100% / 52) - 0.6%);}
+	#key85 .blackKey{left:calc(38*(100% / 52) - 0.6%);}
+	#key87 .blackKey{left:calc(39*(100% / 52) - 0.6%);}
+	#key90 .blackKey{left:calc(41*(100% / 52) - 0.6%);}
+	#key92 .blackKey{left:calc(42*(100% / 52) - 0.6%);}
+	#key94 .blackKey{left:calc(43*(100% / 52) - 0.6%);}
+	#key97 .blackKey{left:calc(45*(100% / 52) - 0.6%);}
+	#key99 .blackKey{left:calc(46*(100% / 52) - 0.6%);}
+	#key102 .blackKey{left:calc(48*(100% / 52) - 0.6%);}
+	#key104 .blackKey{left:calc(49*(100% / 52) - 0.6%);}
+	#key106 .blackKey{left:calc(50*(100% / 52) - 0.6%);}
+	#key108 .whiteKey{width:100%;margin-right:0;}
+	.goback {
+		bottom: 40px;
+		right: 10px;
+	}
+	.goback img {
+		width: 130px;
+		height: 52px;
+	}
+}

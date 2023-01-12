@@ -1,0 +1,204 @@
+{
+    "pages" : [
+        //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		// {
+		//     "path" : "pages/test/waterfall",
+		//     "style" : {
+		//         "navigationBarTitleText" : "逐梦智能钢琴"
+		//     }
+		// },
+		{
+		    "path" : "pages/index/index",
+		    "style" : {
+		        "navigationBarTitleText" : "逐梦智能钢琴"
+		    }
+		},
+		{
+		    "path" : "pages/set/set",
+		    "style" : {
+		        "navigationBarTitleText" : "钢琴设置"
+		    }
+		},
+		{
+		    "path" : "pages/exercises/exercises",
+		    "style" : {
+		        "navigationBarTitleText" : "选择题",
+				"app-plus": {
+					"subNVues":[{
+						"id": "courseMenu",
+						"path": "components/common/coursemenu.nvue",
+						"style": {
+							"width": "400px",
+							"height": "100%",
+							"background": "transparent"
+						}  
+					}]  
+				}
+		    }
+		},
+		{
+		    "path" : "pages/coloring/coloring",
+		    "style" : {
+		        "navigationBarTitleText" : "涂色",
+				"app-plus": {
+					"subNVues":[{
+						"id": "courseMenu",
+						"path": "components/common/coursemenu.nvue",
+						"style": {
+							"width": "400px",
+							"height": "100%",
+							"background": "transparent"
+						}  
+					}]  
+				}
+		    }
+		},
+		{
+			"path" : "pages/video/video",
+			"style" :{
+				"navigationBarTitleText": "视频",
+				"app-plus": {
+					"subNVues":[{
+						"id": "courseMenu",
+						"path": "components/common/coursemenu.nvue",
+						"style": {
+							"width": "400px",
+							"height": "100%",
+							"background": "transparent"
+							
+						}  
+					}]  
+				}
+			}
+		},
+		{
+		    "path" : "pages/waterfall/waterfall",
+		    "style" : {
+		        "navigationBarTitleText": "瀑布流",
+				"app-plus": {
+					"subNVues":[{
+						"id": "courseMenu",
+						"path": "components/common/coursemenu.nvue",
+						"style": {
+							"width": "400px",
+							"height": "100%",
+							"background": "transparent"
+						}  
+					}]  
+				}
+		    }
+		},
+		{
+		    "path" : "pages/active/active",
+		    "style" : {
+		        "navigationBarTitleText" : "活动报名"
+		    }
+		},
+		{
+		    "path" : "pages/live/live",
+		    "style" : {
+		        "navigationBarTitleText" : "直播课程"
+		    } 
+		},
+		{
+		    "path" : "pages/login/login",
+		    "style" : {
+		        "navigationBarTitleText" : "登录"
+		    }
+		},
+		{
+			"path" : "pages/through/popup3", //选择题弹窗
+			"style": {
+				"navigationStyle": "custom",
+				"backgroundColor": "transparent",
+				"app-plus": {
+					"animationType": "fade-in",
+					"background": "transparent",
+					"popGesture": "none"
+				}
+			}
+		},
+		{
+			"path" : "pages/task/task",
+			"style" :{
+				"navigationBarTitleText": "作业列表"
+			}
+		},
+		{
+			"path" : "pages/task/taskdetail",
+			"style" :{
+				"navigationBarTitleText": "作业详情"
+			}
+		},
+        {
+            "path" : "pages/search/search",
+            "style" : {
+                "navigationBarTitleText" : "搜索曲谱"
+            } 
+        },
+        {
+            "path" : "pages/musicxml/musicxml",
+            "style" : {
+                "navigationBarTitleText" : "曲谱详情",
+				"app-plus": {
+					"subNVues":[{
+						"id": "courseMenu",
+						"path": "components/common/coursemenu.nvue",
+						"style": {
+							"width": "400px",
+							"height": "100%",
+							"background": "transparent"
+						}  
+					}]  
+				}
+            }
+        },
+		{
+		    "path" : "pages/personal/personal",
+		    "style" : {
+		        "navigationBarTitleText" : "个人中心"
+		    }
+		},
+		{
+		    "path" : "pages/courses/courses",
+		    "style" : {
+		        "navigationBarTitleText" : "AI课程"
+		    }
+		},
+		{
+		    "path" : "pages/details/details",
+		    "style" : {
+		        "navigationBarTitleText" : "课程详情"
+		    }
+		},
+		// {
+		//     "path" : "pages/test/test",
+		//     "style" : {
+		// 		"navigationBarTitleText" : "测试"
+		// 	}
+		// },
+		{
+		    "path" : "pages/debugging/debugging",
+		    "style" : {
+				"navigationBarTitleText" : "推送内容"
+			}
+		}
+    ],
+    "globalStyle" : {
+        "navigationBarTextStyle" : "black",
+        "navigationBarTitleText" : "逐梦智能钢琴",
+        "navigationBarBackgroundColor" : "#F8F8F8",
+        "backgroundColor" : "#F8F8F8",
+        "navigationStyle" : "custom"
+    },
+	"condition" : { //模式配置，仅开发期间生效
+		"current": 0, //当前激活的模式(list 的索引项)
+		"list": [
+			{
+				"name": "", //模式名称
+				"path": "", //启动页面，必选
+				"query": "" //启动参数，在页面的onLoad函数里面得到
+			}
+		]
+	}
+}

@@ -1,0 +1,18 @@
+{
+	"name": "Android Midi2插件",
+	"id": "XM-Midi2",
+	"version": "v1.0.2022.07.20",
+	"description": "Android Midi插件， 联系QQ：1804945430",
+	"_dp_type": "nativeplugin",
+	"_dp_nativeplugin": {
+		"android": {
+			"plugins": [{
+				"type": "module",
+				"name": "XM-Midi2",
+				"class": "com.xiaoming.plugin.midi.MidiModule"
+			}],
+			"integrateType": "aar",
+			"minSdkVersion": "23"
+		}
+	}
+}

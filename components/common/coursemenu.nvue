@@ -1,0 +1,437 @@
+<template>
+	<view :class="globalData.width > 1925 ? 'csw' : 'pad'">
+		<div class="menu" @click.stop="menu()"><image class="menuimg" src="@/static/coursemenu/menu-icon.png"></image></div>
+		<div class="left" @click.stop="clickBtn('prev')"><image class="prev" src="@/static/coursemenu/prev-icon.png"></image></div>
+		<text class="txt">{{course.index+1}} / {{course.content.length}}</text>
+		<div class="right" @click.stop="clickBtn('next')"><image class="next" src="@/static/coursemenu/next-icon.png"></image></div>
+		<!-- 课件列表 -->
+		<view class="content" v-if="listShow">
+			<text class="title">课件列表</text>
+			<view class="list">
+				<scroll-view class="scroll" scroll-y="true" show-scrollbar="false">
+					<view v-for="(item,index) in course.content" :key="index" @click.stop.stop="course.index == index ? '' : selectCourse(index,item)" :class="course.index == index ? 'row cur' : 'row'">
+						<view class="img">
+							<image class="icon" v-if="course.ptype == 2 && item.open == 0" src="@/static/coursemenu/lock-icon.png"></image>
+							<image class="icon" v-else-if="item.cw_type == 1" src="@/static/coursemenu/video-icon.png"></image>
+							<image class="icon" v-else-if="item.cw_type == 2" src="@/static/coursemenu/staff-icon.png"></image>
+							<image class="icon" v-else-if="item.cw_type == 3" src="@/static/coursemenu/waterfall-icon.png"></image>
+							<image class="icon" v-else-if="item.cw_type == 4" src="@/static/coursemenu/color-icon.png"></image>
+							<image class="icon" v-else-if="item.cw_type == 5" src="@/static/coursemenu/select-icon.png"></image>
+							<!-- <image class="icon" v-if="item.cw_type == 1" src="@/static/coursemenu/lock-icon.png"></image> -->
+							<!-- <image class="icon" v-if="item.cw_type == 1" src="@/static/coursemenu/unlock-icon.png"></image> -->
+						</view>
+						<text class="name">{{item.cw_name}}</text>
+						<view class="img">
+							<image class="free" v-if="item.cw_free == 0 && item.buy ==0" src="../../static/free0.png"></image>
+						</view>
+					</view>
+				</scroll-view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	import { param } from '@/lib/common.js';
+	//Nvue无法调用main.js中的属性，需要单独引用
+	import request from '@/lib/request.js'
+	export default {
+		data() {
+			return {
+				//全局数据
+				globalData:getApp().globalData,
+				//列表显示
+				listShow:false,
+				//课件内容
+				course:[],
+			}
+		},
+		onLoad() {
+			this.updateData()
+			let that = this
+			//下一个
+			uni.$on('next',function(){
+				that.clickBtn('next')
+			})
+			//解锁
+			uni.$on('unlocked',function(cwid){
+				for (let i = 0; i < that.course.content.length; i++) {
+					if (that.course.content[i].cw_id == cwid) {
+						that.course.content[i].open = 1
+						break;
+					}
+				}
+			})
+			//监听更新数据（主要是给曲谱页用，曲谱页为预加载页面，不会自动更新）
+			uni.$on('upData',function(){
+				that.updateData()
+			})
+		},
+		methods: {
+			//更新数据，主要解决曲谱不更新数据问题
+			updateData(){
+				this.course = this.$store.state.course
+
+			},
+			menu(){
+				this.listShow = !this.listShow
+			},
+			clickBtn(type){
+				let index = 0
+				if (type == 'prev') {
+					//判断是否第一个
+					if (this.course.index > 0) {
+						index = this.course.index - 1
+					}
+				} else {
+					if (this.course.index < this.course.content.length - 1) {
+						index = this.course.index + 1
+					} else {
+						//最后一个，出现课时已学完弹窗
+						uni.$emit('over')
+						return
+					}
+				}
+				this.changeCourse(index)
+				this.listShow = false
+			},
+			selectCourse(index){
+				this.changeCourse(index)
+				//隐藏列表
+				this.menu()
+			},
+			changeCourse(index){
+				//获取当前课件内容
+				let e = this.course.content[index]
+				//1、如果是闯关，要判断是否解锁
+				if(this.course.ptype == 2){
+					if(e.open == 0){
+						uni.showToast({
+							title: '未解锁',
+							icon: 'error'
+						})
+						return
+					}
+				}
+				// 2、如果不是，根据返回值，判断是否要解锁下一关课件
+				// 3、判断课件是否解锁，并判断课件是否免费，用户是否购买
+				
+				
+				//更新课件索引
+				this.course.index = index
+				//更新索引
+				this.$store.state.course.index = index
+				//组织跳转路径带参数&更新数据
+				let path = ''
+				let data = {}
+				switch (e.cw_type) {
+					case 1:{
+						data = {
+							thumb:e.cw_content.thumb,
+							video:e.cw_content.video,
+							ptype:this.course.ptype,
+							cid:this.course.cid,
+							pid:this.course.pid,
+							cwid:e.cw_id
+						}
+						path = '/pages/video/video'
+						break;
+					}
+					//曲谱
+					case 2:{
+						//更新曲谱信息
+						this.$store.state.xmlInfo = {
+							ptype:this.course.ptype,
+							pid:this.course.pid,
+							cid:this.course.cid,
+							id:0,
+							cwid:e.cw_id,
+							path:e.cw_content.xml,
+							title:e.cw_name,
+						}
+						//曲谱参数，为了兼容旧课程数据，没有参数时，使用默认参数
+						let param = {}
+						param.pass = e.cw_content.pass ? e.cw_content.pass : 80
+						param.mode = e.cw_content.mode ? e.cw_content.mode : false
+						param.hands = e.cw_content.hands ? e.cw_content.hands : 0
+						param.metronome = e.cw_content.metronome ? e.cw_content.metronome : false
+						param.tempo = e.cw_content.tempo ? e.cw_content.tempo : 100
+						param.keytips = e.cw_content.keytips ? e.cw_content.keytips : 'open'
+						this.$store.state.xmlParam = param
+						data = {}
+						path = "/pages/musicxml/musicxml"
+						break;
+					}
+					//瀑布流
+					case 3:{
+						//更新曲谱信息
+						this.$store.state.xmlInfo = {
+							ptype:this.course.ptype,
+							pid:this.course.pid,
+							cid:this.course.cid,
+							id:0,
+							cwid:e.cw_id,
+							path:e.cw_content.xml,
+							title:e.cw_name,
+						}
+						//曲谱参数，为了兼容旧课程数据，没有参数时，使用默认参数
+						let param = {}
+						param.pass = e.cw_content.pass ? e.cw_content.pass : 80
+						param.mode = e.cw_content.mode ? e.cw_content.mode : false
+						param.hands = e.cw_content.hands ? e.cw_content.hands : 0
+						param.metronome = e.cw_content.metronome ? e.cw_content.metronome : false
+						param.tempo = e.cw_content.tempo ? e.cw_content.tempo : 100
+						param.keytips = e.cw_content.keytips ? e.cw_content.keytips : 'auto'
+						this.$store.state.xmlParam = param
+						path = '/pages/waterfall/waterfall'
+						break;
+					} 
+					//涂色
+					case 4:{
+						data = {
+							cwid:e.cw_id,
+							cid:this.course.cid,
+							pid:this.course.pid,
+							ptype:this.course.ptype,
+						}
+						path = '/pages/coloring/coloring'
+						break;
+					}
+					//选择题
+					case 5:{
+						data = {
+							cwid:e.cw_id,
+							cid:this.course.cid,
+							pid:this.course.pid,
+							ptype:this.course.ptype,
+							//参数
+							title_text:e.cw_content.title_text,
+							title_img:e.cw_content.title_img,
+							title_audio:e.cw_content.title_audio,
+							select_a_img:e.cw_content.select_a_img,
+							select_a_text:e.cw_content.select_a_text,
+							select_b_img:e.cw_content.select_b_img,
+							select_b_text:e.cw_content.select_b_text,
+							select_c_img:e.cw_content.select_c_img,
+							select_c_text:e.cw_content.select_c_text,
+							select_d_img:e.cw_content.select_d_img,
+							select_d_text:e.cw_content.select_d_text,
+							right_answer:e.cw_content.right_answer,
+						}
+						path = '/pages/exercises/exercises'
+						break;
+					}
+				}
+				//如果上一个课件跟当前课件相同
+				if (this.course.prevType == e.cw_type) {
+					//删除缓存路径
+					this.$store.state.excessive = ''
+					//直接更新课件页面数据
+					uni.$emit('update',{info:data})
+				} else {
+					//拼接路径
+					let url = param(path,data)
+					//如果上一个课件不是曲谱，并且当前课件也不是曲谱，则直接跳转
+					if (this.course.prevType != 2 && e.cw_type != 2) {
+						//更新类型
+						this.$store.state.course.prevType = e.cw_type
+						this.course.prevType = e.cw_type
+						this.$store.state.excessive = ''
+						uni.redirectTo({
+							url:url
+						})
+					} else {
+						//更新类型
+						this.$store.state.course.prevType = e.cw_type
+						this.course.prevType = e.cw_type
+						this.$store.state.excessive = url
+						//跳转新课件页
+						uni.$emit('change',{path:url})
+					}
+				}
+			},
+		},
+		beforeDestroy(){
+			// uni.$off('next')
+			// uni.$off('unlocked')
+		}
+	}
+</script>
+
+<style>
+	.csw{
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		position: fixed;
+		left: 20px;
+		top: 10px;
+		flex: 1;
+	}
+	.csw .menu{
+		width:85px;
+		height:85px;
+		margin-right: 15px;
+		border-radius: 50%;
+	}
+	.csw .menuimg{
+		width:85px;
+		height:85px;
+	}
+	.csw .left, .csw .right{
+		width:69px;
+		height:69px;
+		margin-top:8px;
+	}
+	.csw .prev,.next{
+		width:69px;
+		height:69px;
+	}
+	.csw .txt{
+		width:80px;
+		color:#4B93FF;
+		font-size:20px;
+		padding-top:26px;
+		text-align: center;
+	}
+	.csw .content{
+		width: 360px;
+		height: 500px;
+		border: 1px solid #4B93FF;
+		position: absolute;
+		top: 90px;
+		border-radius: 10px;
+		background: #1A3F96;
+		opacity: 1;
+		padding:20px;
+	}
+	.csw .title{
+		font-size: 20px;
+		color: #eabb39;
+		border-left:3px #eabb39 solid;
+		padding-left:10px;
+	}
+	.csw .list {
+		margin: 10px 0;
+	}
+	.csw .scroll {
+		height: 400px;
+	}
+	.csw .row {
+		width:320px;
+		height: 45px;
+		margin-top: 10px;
+		border-bottom:1px #3C59A1 solid;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+	}
+	.csw .free{
+		width: 20px;
+		height: 15px;
+		margin-top: 12px;
+		margin-left: 5px;
+	}
+	.csw .icon{
+		width: 20px;
+		height: 20px;
+		margin-top: 12px;
+	}
+	.csw .name{
+		width:250px;
+		height:20px;
+		font-size: 18px;
+		margin-left: 10px;
+		color: #fff;
+		margin-top: 10px;
+		overflow: hidden;
+		
+	}
+	/* 平板 */
+	.pad{
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		position: fixed;
+		left: 30px;
+		top: 20px;
+		flex: 1;
+	}
+	.pad .menu,.pad .menuimg{
+		width:65px;
+		height:65px;
+		border-radius: 50%;
+	}
+	.pad .left,.pad .right{
+		width:49px;
+		height:49px;
+		margin-top:8px;
+	}
+	.pad .prev,.pad .next{
+		width:49px;
+		height:49px;
+	}
+	.pad .txt{
+		width:70px;
+		color:#4B93FF;
+		font-size:20px;
+		padding-top:18px;
+		text-align: center;
+	}
+	.pad .content{
+		width: 340px;
+		height: 550px;
+		border: 1px solid #4B93FF;
+		position: absolute;
+		top: 70px;
+		border-radius: 10px;
+		background: #1A3F96;
+		opacity: 1;
+		padding: 20px;
+		overflow: hidden;
+	}
+	 .pad .title{
+		font-size: 20px;
+		color: #eabb39;
+		border-left: 3px #eabb39 solid;
+		padding-left: 10px;
+	}
+	.pad .list {
+		margin: 10px 0;
+	}
+	.pad .scroll {
+		height: 460px;
+	}
+	.pad .row {
+		width: 340px;
+		height: 35px;
+		margin-top: 10px;
+		border-bottom:1px #3C59A1 solid;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+	}
+	.pad .icon{
+		width: 20px;
+		height: 20px;
+		margin-top: 12px;
+	}
+	.pad .name{
+		width: 240px;
+		height:20px;
+		font-size: 18px;
+		margin-left: 10px;
+		margin-top: 10px;
+		color: #fff;
+		overflow: hidden;
+	}
+	.pad .free{
+		width: 20px;
+		height: 15px;
+		margin-top: 12px;
+		margin-left: 5px;
+	}
+	.cur .name{
+		color:#eabb39 !important;
+	} 
+</style>

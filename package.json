@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "@vitejs/plugin-vue": "^3.0.3",
+    "axios": "^0.27.2",
+    "blueimp-md5": "^2.19.0",
+    "html2canvas": "^1.4.1",
+    "musicvis-lib": "^0.55.0",
+    "vant": "^3.5.2",
+    "vuex": "^4.0.2",
+    "webpack-cli": "4.10.0",
+    "webpack-dev-server": "3.11.2"
+  }, 
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack --config webpack.config.js",
+    "start:dev": "webpack serve --open --config webpack.config.js"
+  }
+}

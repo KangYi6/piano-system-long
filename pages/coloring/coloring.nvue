@@ -1,0 +1,632 @@
+<template>
+	<view :class="globalData.width>=2560?'ipad_2560' : globalData.width>1656&&globalData.width<=1925?'ipad_1920' : globalData.width>1286&&globalData.width<=1655?'ipad_1652' : globalData.width<=1285?'ipad_1280' : '' ">
+		<view class="coloring">
+			<view class="keyboard">
+				<view class="whiteKey" v-for="(item, index) in whitekey" :key="index" :style="{background:item.color}" @click="chooseWhite(item,index)"></view>
+				<view :class="index==2||index==6||index==9||index==13||index==16 ? 'blackKey null' : 'blackKey'" v-for="(item, index) in blackkey" :key="index" :style="{background:item.color}" @click="chooseBlack(item,index)"></view>
+			</view>
+			<view class="bottom">
+				<view class="color" v-for="(item,index) in colorList" :key="index" :class="{cur:current == index}" @click="chooseCor(index,item)">
+					<image :src="item.url" mode=""></image> 
+				</view>
+			</view>
+		</view>
+		<!-- 课时结束 -->
+		<cover-view v-if="overShow" class="over" :style="'left:'+left+'px;top:'+top+'px;'">
+			<cover-view class="line">
+				<cover-image class="title" src="@/static/common/over-title.png"></cover-image>
+				<!-- <cover-view class="confirm" @click.stop="goBacK"> -->
+					<text class="text">{{time}}秒后自动返回上一页...</text>
+				<!-- </cover-view> -->
+			</cover-view>
+		</cover-view>
+		<view class="goback" @click="goBack"><image class="backimg" src="@/static/goback.png" mode="widthFix"></image></view>
+	</view> 
+</template>
+
+<script>
+	//Nvue无法调用main.js中的属性，需要单独引用
+	import request from '@/lib/request.js'
+	export default {
+		data(){
+			return {
+				globalData:getApp().globalData, //全局参数
+				whitekey: [],
+				blackkey: [],
+				colorList: [
+					{url:'../../static/live_color_1.png', color:'#e73227'},
+					{url:'../../static/live_color_2.png', color:'#ff760e'},
+					{url:'../../static/live_color_3.png', color:'#ffc50a'},
+					{url:'../../static/live_color_4.png', color:'#56da36'},
+					{url:'../../static/live_color_5.png', color:'#2a9fe2'},
+					{url:'../../static/live_color_6.png', color:'#8b4ecf'},
+					{url:'../../static/live_color_7.png', color:'#da33cf'},
+					{url:'../../static/live_color_8.png', color:'#525258'},
+					{url:'../../static/live_color_9.png', color:'#ffffff'},
+				],
+				color: '',
+				current: '',
+				// 涂色数据
+				info: [],
+				//子窗口
+				subNVue: null ,
+				width: 0,
+				height: 0,
+				left: 0,
+				top: 0,
+				overShow: false,
+				time: 3,
+			}
+		},
+		onLoad(options){
+			this.info = options
+			//涂色板宽高
+			// if (getApp().globalData.width > 1925) {
+			// 	this.width = 1480;
+			// 	this.height = 590;
+			// } else {
+			// 	this.width = getApp().globalData.width,
+			// 	this.height = getApp().globalData.height
+			// }
+			console.log(this.globalData.width,this.globalData.height)
+			//弹窗的位置
+			this.left = getApp().globalData.width/2 - 220
+			this.top = getApp().globalData.height/2 - 125
+			this.whileKey();
+			this.blackKey();
+			//获取nvue子窗口
+			this.subNVue = uni.getSubNVueById('courseMenu')
+			//默认先隐藏
+			this.subNVue.hide()
+			//获取store数据，如果需要显示
+			if (this.$store.state.course.show) {
+				this.subNVue.show()
+			}
+			let that = this
+			//监听课件切换
+			uni.$on('change',function(data){
+				uni.navigateBack()
+			})
+			//监听课件更新
+			uni.$on('update',function(data){
+				that.info = data.info
+				that.subNVue.show()
+			})
+			//课时已学完
+			uni.$on('over',function(data){
+				that.overShow = true
+				let b = setInterval(()=>{
+					that.time-=1
+					let a = setTimeout(()=>{
+						that.goBack()
+					},2000)
+				},1000)
+			})
+		},
+		methods: {
+			whileKey(){
+				for(let i = 0; i<21; i++){
+					let obj = {color:'#fff'};
+					this.whitekey.push(obj)
+				}
+			},
+			blackKey(){
+				for(let i = 0; i<20; i++){
+					let obj = {color:'#fff'};
+					this.blackkey.push(obj)
+				}
+			},
+			// 点击铅笔颜色
+			chooseCor(index,item){
+				this.color = item.color
+				this.current = index
+				this.commitData()
+			},
+			// 白色按键
+			chooseWhite(item,index){
+				this.whitekey[index].color = this.color
+			},
+			// 黑色按键
+			chooseBlack(item,index){
+				this.blackkey[index].color = this.color
+			},
+			// 返回
+			goBack(){
+				//清理课程切换组件状态
+				this.$store.state.course.show = false
+				this.overShow = false
+				uni.navigateBack()
+			},
+			//提交数据
+			commitData(){
+				// 如果是闯关
+				if (this.info.ptype && this.info.ptype == 2) {
+					request({
+						url: '/piano/breakthrough/submission.html',
+						method: 'POST',
+						data: {
+							p_id: this.info.pid,
+							score: 100, //闯关上传分数
+							type: 4, //课件类型
+							cw_id: this.info.cwid,
+							c_id: this.info.cid
+						}
+					}).then(res => {
+						if (res.data.code == 1000) {
+							// 根据返回值判断是否要解锁下一关
+							if (res.data.data != 0){ //表示全部完成或者下一关需要购买用户未购买
+								//解锁下一个课件的ID
+								uni.$emit('unlocked',res.data.data)
+							}
+						} else {
+							uni.showToast({
+								title:res.data.msg,
+								icon:'none'
+							})
+						}
+					}) 
+				//其它课程，显示弹窗
+				} else if (this.info.ptype) {
+					this.successShow = false
+				}
+			},
+		},
+	}
+</script>
+
+<style>
+	/* 2560*720 */
+	.ipad_2560 {
+		width: 2560px;
+		height: 720px;
+		background-color: #0a1050;
+		position: relative;
+		z-index: -1;
+	}
+	.ipad_2560 .coloring {
+		width: 1400px;
+		height: 630px;
+		background-color: #6cc4ff;
+		border-radius: 12px;
+		margin-top: 60px;
+		margin-left: 580px;
+	}
+	.ipad_2560 .keyboard {
+		width: 1200px;
+		height: 360px;
+		margin-top: 50px;
+		margin-left: 100px;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+	}
+	/* 黑键 */
+	.ipad_2560 .blackKey {
+		width: 40px; 
+		height: 240px;
+		border-bottom-left-radius: 10px;
+		border-bottom-right-radius: 10px;
+		border-width: 1px;
+		border-style: solid;
+		border-color: #000;
+		left: -1160px;
+		margin-right: 17px;
+	}
+	.ipad_2560 .null {
+		visibility: hidden;
+	}
+	/* 白键 */
+	.ipad_2560 .whiteKey {
+		width: 57px;
+		height: 350px;
+		border-bottom-left-radius: 10px;
+		border-bottom-right-radius: 10px;
+		border-width: 1px;
+		border-style: solid;
+		border-color: #000;
+	}
+	.ipad_2560 .bottom {
+		width: 1204px;
+		height: 170px;
+		margin-top: 70px;
+		margin-left: 100px;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+	}
+	.ipad_2560 .bottom .color {
+		width: 50px; 
+		height: 140px;
+		top: 20px;
+		left: 100px;
+		margin-right: 70px;
+	} 
+	.ipad_2560 .cur{
+		margin-top: -20px;
+	}
+	/* 返回按钮 */
+	.ipad_2560 .goback {
+		position: absolute;
+		bottom: 40px;
+		right: 10px;
+	}
+	.ipad_2560 .goback .backimg {
+		width: 180px;
+		height: 72px;
+	}
+	/* 课时完成 */
+	.ipad_2560 .over{
+		width:430px;
+		height:230px;
+		position: absolute;
+		text-align: center;
+		padding:10px;
+		z-index: 999;
+		background-image: linear-gradient(to right, #044BD6 , #009FFA);
+		border-radius: 10px;
+		box-shadow: 0px 0px 10px 3px rgb(0 0 0 / 20%);
+		text-align: center;
+		margin-bottom:20px;
+	}
+	.ipad_2560 .over .title {
+		width:370px;
+		height:34px;
+		margin:40px 15px 43px;
+	}
+	.ipad_2560 .confirm {
+		width:172px;
+		height:40px;
+		background: #0270E6;
+		border:1px #fff solid;
+		margin-left:120px;
+		border-radius:20px;
+	}
+	.ipad_2560 .text {
+		line-height: 40px;
+		font-size:22px;
+		color:#fff;
+		text-align: center;
+	}
+	
+	/* 1920*1080 */
+	.ipad_1920 {
+		width: 1920px;
+		height: 1080px;
+		background-color: #0a1050;
+		position: relative;
+		z-index: -1;
+		overflow: hidden;
+	}
+	.ipad_1920 .coloring {
+		width: 1550px;
+		height: 700px;
+		background-color: #6cc4ff;
+		border-radius: 12px;
+		margin-top: 200px;
+		margin-left: 200px;
+	}
+	.ipad_1920 .keyboard {
+		width: 1200px;
+		height: 360px;
+		margin-top: 50px;
+		margin-left: 180px;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+	}
+	/* 黑键 */
+	.ipad_1920 .blackKey {
+		width: 40px; 
+		height: 240px;
+		border-bottom-left-radius: 10px;
+		border-bottom-right-radius: 10px;
+		border-width: 1px;
+		border-style: solid;
+		border-color: #000;
+		left: -1160px;
+		margin-right: 17px;
+	}
+	.ipad_1920 .null {
+		visibility: hidden;
+	}
+	/* 白键 */
+	.ipad_1920 .whiteKey {
+		width: 57px;
+		height: 350px;
+		border-bottom-left-radius: 10px;
+		border-bottom-right-radius: 10px;
+		border-width: 1px;
+		border-style: solid;
+		border-color: #000;
+	}
+	.ipad_1920 .bottom {
+		width: 1204px;
+		height: 200px;
+		margin-top: 80px;
+		margin-left: 170px;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+	}
+	.ipad_1920 .bottom .color {
+		width: 50px; 
+		height: 140px;
+		top: 20px;
+		left: 100px;
+		margin-right: 70px;
+	} 
+	.ipad_1920 .cur{
+		margin-top: -20px;
+	}
+	/* 返回按钮 */
+	.ipad_1920 .goback {
+		position: absolute;
+		top:40px;
+		right:40px;
+	}
+	.ipad_1920 .goback .backimg {
+		width:180px;
+		height:72px;
+	}
+	/* 课时完成 */
+	.ipad_1920 .over{
+		width:430px;
+		height:230px;
+		position: absolute;
+		text-align: center;
+		padding:10px;
+		z-index: 999;
+		background-image: linear-gradient(to right, #044BD6 , #009FFA);
+		border-radius: 10px;
+		box-shadow: 0px 0px 10px 3px rgb(0 0 0 / 20%);
+		text-align: center;
+		margin-bottom:20px;
+	}
+	.ipad_1920 .over .title {
+		width:370px;
+		height:34px;
+		margin:40px 15px 43px;
+	}
+	.ipad_1920 .confirm {
+		width:172px;
+		height:40px;
+		background: #0270E6;
+		border:1px #fff solid;
+		margin-left:120px;
+		border-radius:20px;
+	}
+	.ipad_1920 .text {
+		line-height: 40px;
+		font-size:22px;
+		color:#fff;
+		text-align: center;
+	}
+	
+	/* 1652*873 */
+	.ipad_1652 {
+		width: 1652px;
+		height: 873px;
+		background-color: #0a1050;
+		position: relative;
+		z-index: -1;
+		overflow: hidden;
+	}
+	.ipad_1652 .coloring {
+		width: 1550px;
+		height: 700px;
+		background-color: #6cc4ff;
+		border-radius: 12px;
+		margin-top: 120px;
+		margin-left: 50px;
+	}
+	.ipad_1652 .keyboard {
+		width: 1200px;
+		height: 360px;
+		margin-top: 50px;
+		margin-left: 180px;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+	}
+	/* 黑键 */
+	.ipad_1652 .blackKey {
+		width: 40px; 
+		height: 240px;
+		border-bottom-left-radius: 10px;
+		border-bottom-right-radius: 10px;
+		border-width: 1px;
+		border-style: solid;
+		border-color: #000;
+		left: -1160px;
+		margin-right: 17px;
+	}
+	.ipad_1652 .null {
+		visibility: hidden;
+	}
+	/* 白键 */
+	.ipad_1652 .whiteKey {
+		width: 57px;
+		height: 350px;
+		border-bottom-left-radius: 10px;
+		border-bottom-right-radius: 10px;
+		border-width: 1px;
+		border-style: solid;
+		border-color: #000;
+	}
+	.ipad_1652 .bottom {
+		width: 1204px;
+		height: 200px;
+		margin-top: 80px;
+		margin-left: 170px;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+	}
+	.ipad_1652 .bottom .color {
+		width: 50px; 
+		height: 140px;
+		top: 20px;
+		left: 100px;
+		margin-right: 70px;
+	} 
+	.ipad_1652 .cur{
+		margin-top: -20px;
+	}
+	/* 返回按钮 */
+	.ipad_1652 .goback {
+		position: absolute;
+		top:40px;
+		right:40px;
+	}
+	.ipad_1652 .goback .backimg {
+		width:180px;
+		height:72px;
+	}
+	/* 课时完成 */
+	.ipad_1652 .over{
+		width:430px;
+		height:230px;
+		position: absolute;
+		text-align: center;
+		padding:10px;
+		z-index: 999;
+		background-image: linear-gradient(to right, #044BD6 , #009FFA);
+		border-radius: 10px;
+		box-shadow: 0px 0px 10px 3px rgb(0 0 0 / 20%);
+		text-align: center;
+		margin-bottom:20px;
+	}
+	.ipad_1652 .over .title {
+		width:370px;
+		height:34px;
+		margin:40px 15px 43px;
+	}
+	.ipad_1652 .confirm {
+		width:172px;
+		height:40px;
+		background: #0270E6;
+		border:1px #fff solid;
+		margin-left:120px;
+		border-radius:20px;
+	}
+	.ipad_1652 .text {
+		line-height: 40px;
+		font-size:22px;
+		color:#fff;
+		text-align: center;
+	}
+	
+	/* 1280*720 */
+	.ipad_1280 {
+		width: 1280px;
+		height: 720px;
+		background-color: #0a1050;
+		position: relative;
+		z-index: -1;
+		overflow: hidden;
+	}
+	.ipad_1280 .coloring {
+		width: 1260px;
+		height: 550px;
+		background-color: #6cc4ff;
+		border-radius: 12px;
+		margin-top: 100px;
+		margin-left: 10px;
+	}
+	.ipad_1280 .keyboard {
+		width: 1200px;
+		height: 360px;
+		margin-top: 50px;
+		margin-left: 30px;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+	}
+	/* 黑键 */
+	.ipad_1280 .blackKey {
+		width: 40px; 
+		height: 240px;
+		border-bottom-left-radius: 10px;
+		border-bottom-right-radius: 10px;
+		border-width: 1px;
+		border-style: solid;
+		border-color: #000;
+		left: -1160px;
+		margin-right: 17px;
+	}
+	.ipad_1280 .null {
+		visibility: hidden;
+	}
+	/* 白键 */
+	.ipad_1280 .whiteKey {
+		width: 57px;
+		height: 350px;
+		border-bottom-left-radius: 10px;
+		border-bottom-right-radius: 10px;
+		border-width: 1px;
+		border-style: solid;
+		border-color: #000;
+	}
+	.ipad_1280 .bottom {
+		width: 1204px;
+		height: 170px;
+		margin-top: 30px;
+		margin-left: 20px;
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+	}
+	.ipad_1280 .bottom .color {
+		width: 50px; 
+		height: 140px;
+		top: 20px;
+		left: 100px;
+		margin-right: 70px;
+	} 
+	.ipad_1280 .cur{
+		margin-top: -20px;
+	}
+	/* 返回按钮 */
+	.ipad_1280 .goback {
+		position: absolute;
+		top: 20px;
+		right: 45px;
+	}
+	.ipad_1280 .goback .backimg {
+		width: 130px;
+		height: 52px;
+	}
+	/* 课时完成 */
+	.ipad_1280 .over{
+		width:430px;
+		height:230px;
+		position: absolute;
+		text-align: center;
+		padding:10px;
+		z-index: 999;
+		background-image: linear-gradient(to right, #044BD6 , #009FFA);
+		border-radius: 10px;
+		box-shadow: 0px 0px 10px 3px rgb(0 0 0 / 20%);
+		text-align: center;
+		margin-bottom:20px;
+	}
+	.ipad_1280 .over .title {
+		width:370px;
+		height:34px;
+		margin:40px 15px 43px;
+	}
+	.ipad_1280 .confirm {
+		width:172px;
+		height:40px;
+		background: #0270E6;
+		border:1px #fff solid;
+		margin-left:120px;
+		border-radius:20px;
+	}
+	.ipad_1280 .text {
+		line-height: 40px;
+		font-size:22px;
+		color:#fff;
+		text-align: center;
+	}
+</style>

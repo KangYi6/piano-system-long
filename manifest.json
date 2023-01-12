@@ -1,0 +1,238 @@
+{
+    "name" : "逐梦智能钢琴",
+    "appid" : "__UNI__C8C25C3",
+    "description" : "逐梦音乐智能钢琴系统",
+    "versionName" : "V1.1.7",
+    "versionCode" : 117,
+    "transformPx" : false,
+    /* 5+App特有相关 */
+    "app-plus" : {
+        "usingComponents" : true,
+        "nvueStyleCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        "compatible" : {
+            "ignoreVersion" : true //true表示忽略版本检查提示框，HBuilderX1.9.0及以上版本支持  
+        },
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : false,
+            "autoclose" : true,
+            "delay" : 0
+        },
+        /* 模块配置 */
+        "modules" : {
+            "VideoPlayer" : {},
+            "Geolocation" : {}
+        },
+        "screenOrientation" : [
+            //可选，字符串数组类型，应用支持的横竖屏
+            "landscape-primary", //可选，字符串类型，支持横屏
+            "landscape-secondary" //可选，字符串类型，支持反向横屏
+        ],
+        /* 应用发布信息 */
+        "distribute" : {
+            "google" : {
+                "hardwareAccelerated" : true
+            },
+            /* android打包配置 */
+            "android" : {
+                "permissions" : [
+                    "<uses-feature android:name=\"android.hardware.camera\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_CHECKIN_PROPERTIES\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_LOCATION_EXTRA_COMMANDS\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_MOCK_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_WIFI_MULTICAST_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CONTROL_LOCATION_UPDATES\"/>",
+                    "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
+                    "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\"/>",
+                    "<uses-permission android:name=\"android.permission.INSTALL_LOCATION_PROVIDER\"/>",
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
+                    "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>"
+                ],
+                "minSdkVersion" : 23,
+                "abiFilters" : [ "armeabi-v7a", "arm64-v8a", "x86" ]
+            },
+            /* ios打包配置 */
+            "ios" : {
+                "dSYMs" : false
+            },
+            /* SDK配置 */
+            "sdkConfigs" : {
+                "ad" : {},
+                "maps" : {
+                    "amap" : {
+                        "appkey_ios" : "",
+                        "appkey_android" : "amap_13049357403BfqpJgKXU"
+                    }
+                },
+                "geolocation" : {
+                    "system" : {
+                        "__platform__" : [ "ios", "android" ]
+                    }
+                }
+            },
+            "splashscreen" : {
+                "androidStyle" : "default",
+                "android" : {
+                    "hdpi" : "unpackage/res/icons/start.png",
+                    "xhdpi" : "unpackage/res/icons/start.png",
+                    "xxhdpi" : "unpackage/res/icons/start.png",
+                    "xxxhdpi" : "unpackage/res/icons/start.png"
+                },
+                // "android" : {
+                // "hdpi" : "unpackage/res/icons/start-long.png",
+                // "xhdpi" : "unpackage/res/icons/start-long.png",
+                // "xxhdpi" : "unpackage/res/icons/start-long.png",
+                // "xxxhdpi" : "unpackage/res/icons/start-long.png"
+                // },
+                "useOriginalMsgbox" : true,
+                "iosStyle" : "common"
+            },
+            "icons" : {
+                "ios" : {
+                    "appstore" : "unpackage/res/icons/logo.png",
+                    "ipad" : {
+                        "app" : "unpackage/res/icons/logo.png",
+                        "app@2x" : "unpackage/res/icons/logo.png",
+                        "notification" : "unpackage/res/icons/logo.png",
+                        "notification@2x" : "unpackage/res/icons/logo.png",
+                        "proapp@2x" : "unpackage/res/icons/logo.png",
+                        "settings" : "unpackage/res/icons/logo.png",
+                        "settings@2x" : "unpackage/res/icons/logo.png",
+                        "spotlight" : "unpackage/res/icons/logo.png",
+                        "spotlight@2x" : "unpackage/res/icons/logo.png"
+                    },
+                    "iphone" : {
+                        "app@2x" : "unpackage/res/icons/logo.png",
+                        "app@3x" : "unpackage/res/icons/logo.png",
+                        "notification@2x" : "unpackage/res/icons/logo.png",
+                        "notification@3x" : "unpackage/res/icons/logo.png",
+                        "settings@2x" : "unpackage/res/icons/logo.png",
+                        "settings@3x" : "unpackage/res/icons/logo.png",
+                        "spotlight@2x" : "unpackage/res/icons/logo.png",
+                        "spotlight@3x" : "unpackage/res/icons/logo.png"
+                    }
+                },
+                "android" : {
+                    "xxxhdpi" : "unpackage/res/icons/logo.png",
+                    "xxhdpi" : "unpackage/res/icons/logo.png",
+                    "xhdpi" : "unpackage/res/icons/logo.png",
+                    "hdpi" : "unpackage/res/icons/logo.png"
+                }
+            }
+        },
+        "nativePlugins" : {
+            "XM-AgoraRTMTutorial" : {
+                "__plugin_info__" : {
+                    "name" : "Android云信令插件",
+                    "description" : "Android云信令插件， 联系QQ：1804945430",
+                    "platforms" : "Android",
+                    "url" : "",
+                    "android_package_name" : "",
+                    "ios_bundle_id" : "",
+                    "isCloud" : false,
+                    "bought" : -1,
+                    "pid" : "",
+                    "parameters" : {}
+                }
+            },
+            "LX-Bugly" : {
+                "__plugin_info__" : {
+                    "name" : "腾讯Bugly异常申报插件",
+                    "description" : "集成腾讯bugly异常申报，快速查看app异常问题",
+                    "platforms" : "Android",
+                    "url" : "https://ext.dcloud.net.cn/plugin?id=7562",
+                    "android_package_name" : "com.thedream.piano.system",
+                    "ios_bundle_id" : "",
+                    "isCloud" : true,
+                    "bought" : 1,
+                    "pid" : "7562",
+                    "parameters" : {}
+                }
+            },
+            "Agora-RTC" : {
+                "__plugin_info__" : {
+                    "name" : "Agora音视频插件",
+                    "description" : "Agora官方维护的音视频插件，并且在GitHub上开源，欢迎大家积极参与问题反馈和代码贡献",
+                    "platforms" : "Android,iOS",
+                    "url" : "https://ext.dcloud.net.cn/plugin?id=3720",
+                    "android_package_name" : "",
+                    "ios_bundle_id" : "",
+                    "isCloud" : true,
+                    "bought" : 1,
+                    "pid" : "3720",
+                    "parameters" : {}
+                }
+            },
+            "XM-Midi2" : {
+                "__plugin_info__" : {
+                    "name" : "Android Midi2插件",
+                    "description" : "Android Midi插件， 联系QQ：1804945430",
+                    "platforms" : "Android",
+                    "url" : "",
+                    "android_package_name" : "",
+                    "ios_bundle_id" : "",
+                    "isCloud" : false,
+                    "bought" : -1,
+                    "pid" : "",
+                    "parameters" : {}
+                }
+            }
+        },
+        "uniStatistics" : {
+            "enable" : false
+        }
+    },
+    /* 快应用特有相关 */
+    "quickapp" : {},
+    /* 小程序特有相关 */
+    "mp-weixin" : {
+        "appid" : "",
+        "setting" : {
+            "urlCheck" : false
+        },
+        "usingComponents" : true,
+        "permission" : {
+            "scope.userLocation" : {
+                "desc" : "开启定位授权"
+            },
+            "requiredPrivateInfos" : true
+        }
+    },
+    "mp-alipay" : {
+        "usingComponents" : true
+    },
+    "mp-baidu" : {
+        "usingComponents" : true
+    },
+    "mp-toutiao" : {
+        "usingComponents" : true,
+        "setting" : {
+            "postcss" : true
+        }
+    },
+    "uniStatistics" : {
+        "enable" : false,
+        "version" : "2"
+    },
+    "vueVersion" : "2",
+    "h5" : {
+        "optimization" : {
+            "treeShaking" : {
+                "enable" : true
+            }
+        }
+    }
+}
